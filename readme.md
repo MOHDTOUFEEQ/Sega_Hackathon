@@ -1,26 +1,12 @@
-🎯 JS Libraries That Can Help
-You can do it all from scratch, but here are libraries that can speed up development:
+# React + Vite
 
-1. PixiJS
-A fast 2D rendering engine built for games.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-Great if you want better performance, sprite handling, and effects.
+Currently, two official plugins are available:
 
-Makes canvas easier to work with.
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-Example use: Loading sprite sheets, handling animation frames, camera movement, etc.
+## Expanding the ESLint configuration
 
-2. Howler.js
-For handling audio (background music, gunfire, explosions).
-
-Simple, powerful, and cross-browser.
-
-3. GSAP
-For animations, like UI transitions, enemy entrances, power-up effects.
-
-Smooth and flexible.
-
-4. Matter.js (optional)
-A physics engine. If you want platforms, gravity, collision detection, etc.
-
-May be overkill if you’re doing simpler bounding box collisions though.
+If you are developing a production application, we recommend using TypeScript and enable type-aware lint rules. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
