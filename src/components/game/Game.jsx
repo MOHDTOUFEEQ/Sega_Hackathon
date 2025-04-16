@@ -2,45 +2,53 @@ import React, { useEffect, useRef } from 'react';
 import { init, startRendering } from './js/index.js';
 import '../../App.css';
 
+let gameInitialized = false;
+
 export default function Game() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas) return;
+    console.log("Mounting Game component...");
 
-    // Set canvas dimensions
+    if (gameInitialized) return;
+    gameInitialized = true;
+
     const dpr = 2;
-    canvas.width = 1024 * dpr;
-    canvas.height = 576 * dpr;
-    canvas.style.width = '100%';
-    canvas.style.height = '100vh';
+    let animationFrameId;
 
-    // Initialize game after canvas is ready
-    const initializeGame = () => {
+    const waitForCanvas = () => {
+      if (!canvas || canvas.clientHeight === 0 || canvas.clientWidth === 0) {
+        // Wait until canvas is rendered properly in the DOM
+        animationFrameId = requestAnimationFrame(waitForCanvas);
+        return;
+      }
+
+      canvas.width = 1024 * dpr;
+      canvas.height = 576 * dpr;
+      window.gameCanvas = canvas;
+
       try {
-        // Pass the canvas to the game engine
-        window.gameCanvas = canvas;
         init();
         startRendering();
+        console.log("✅ Game initialized!");
       } catch (error) {
-        console.error('Error initializing game:', error);
+        console.error("❌ Error during game initialization:", error);
       }
     };
 
-    // Use a small delay to ensure canvas is fully mounted
-    const timer = setTimeout(initializeGame, 100);
+    waitForCanvas();
 
-    // Add event listeners for visibility change
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         window.lastTime = performance.now();
       }
     };
+
     document.addEventListener('visibilitychange', handleVisibilityChange);
 
     return () => {
-      clearTimeout(timer);
+      cancelAnimationFrame(animationFrameId);
       window.gameCanvas = null;
       document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
@@ -48,7 +56,10 @@ export default function Game() {
 
   return (
     <div className="game-wrapper">
-      <canvas ref={canvasRef}></canvas>
+      <canvas
+        style={{ imageRendering: 'pixelated' }}
+        ref={canvasRef}
+      ></canvas>
     </div>
   );
-} 
+}

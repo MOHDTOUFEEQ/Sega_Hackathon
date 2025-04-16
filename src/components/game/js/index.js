@@ -182,7 +182,7 @@ let camera = {
 
 const SCROLL_POST_RIGHT = 330;
 const SCROLL_POST_TOP = 100;
-const SCROLL_POST_BOTTOM = 220;
+const SCROLL_POST_BOTTOM = 270;
 let oceanBackgroundCanvas = null;
 let brambleBackgroundCanvas = null;
 
@@ -238,9 +238,16 @@ window.addEventListener('keyup', (event) => {
 	}
 });
 
+// Timing control
 let lastTime = performance.now();
 let accumulatedTime = 0;
 const timeStep = 1/60; // 60 FPS
+const MAX_DELTA_TIME = 0.1; // Maximum delta time in seconds
+
+function resetGameTiming() {
+	lastTime = performance.now();
+	accumulatedTime = 0;
+}
 
 function init() {
 	if (!initializeCanvas()) {
@@ -394,185 +401,193 @@ function animate(backgroundCanvas) {
 		return;
 	}
 
-	// Calculate delta time
+	// Calculate delta time and clamp it
 	const currentTime = performance.now();
-	const deltaTime = (currentTime - lastTime) / 1000;
+	let deltaTime = (currentTime - lastTime) / 1000;
+	deltaTime = Math.min(deltaTime, MAX_DELTA_TIME);
 	lastTime = currentTime;
 
-	// Update player position
-	player.handleInput(keys);
-	player.update(deltaTime, collisionBlocks);
+	// Accumulate time for fixed time step updates
+	accumulatedTime += deltaTime;
 
-	// Update oposum position
-	for (let i = oposums.length - 1; i >= 0; i--) {
-		const oposum = oposums[i];
-		oposum.update(deltaTime, collisionBlocks);
+	// Update game state at fixed time steps
+	while (accumulatedTime >= timeStep) {
+		// Update player position
+		player.handleInput(keys);
+		player.update(timeStep, collisionBlocks);
 
-		// Jump on enemy
-		const collisionDirection = checkCollisions(player, oposum);
-		if (collisionDirection) {
-			if (collisionDirection === "bottom" && !player.isOnGround) {
-				player.velocity.y = -200;
-				sprites.push(
-					new Sprite({
-						x: oposum.x,
-						y: oposum.y,
-						width: 32,
-						height: 32,
-						imageSrc: "/images/enemy-death.png",
-						spriteCropbox: {
-							x: 0,
-							y: 0,
-							width: 40,
-							height: 41,
-							frames: 6,
-						},
-					})
-				);
+		// Update oposum position
+		// for (let i = oposums.length - 1; i >= 0; i--) {
+		// 	const oposum = oposums[i];
+		// 	oposum.update(timeStep, collisionBlocks);
 
-				oposums.splice(i, 1);
-			} else if ((collisionDirection === "left" || collisionDirection === "right") && player.isOnGround && player.isRolling) {
-				sprites.push(
-					new Sprite({
-						x: oposum.x,
-						y: oposum.y,
-						width: 32,
-						height: 32,
-						imageSrc: "/images/enemy-death.png",
-						spriteCropbox: {
-							x: 0,
-							y: 0,
-							width: 40,
-							height: 41,
-							frames: 6,
-						},
-					})
-				);
+		// 	// Jump on enemy
+		// 	const collisionDirection = checkCollisions(player, oposum);
+		// 	if (collisionDirection) {
+		// 		if (collisionDirection === "bottom" && !player.isOnGround) {
+		// 			player.velocity.y = -200;
+		// 			sprites.push(
+		// 				new Sprite({
+		// 					x: oposum.x,
+		// 					y: oposum.y,
+		// 					width: 32,
+		// 					height: 32,
+		// 					imageSrc: "/images/enemy-death.png",
+		// 					spriteCropbox: {
+		// 						x: 0,
+		// 						y: 0,
+		// 						width: 40,
+		// 						height: 41,
+		// 						frames: 6,
+		// 					},
+		// 				})
+		// 			);
 
-				oposums.splice(i, 1);
-			} else if (collisionDirection === "left" || collisionDirection === "right") {
-				const fullHearts = hearts.filter((heart) => {
-					return !heart.depleted;
-				});
+		// 			oposums.splice(i, 1);
+		// 		} else if ((collisionDirection === "left" || collisionDirection === "right") && player.isOnGround && player.isRolling) {
+		// 			sprites.push(
+		// 				new Sprite({
+		// 					x: oposum.x,
+		// 					y: oposum.y,
+		// 					width: 32,
+		// 					height: 32,
+		// 					imageSrc: "/images/enemy-death.png",
+		// 					spriteCropbox: {
+		// 						x: 0,
+		// 						y: 0,
+		// 						width: 40,
+		// 						height: 41,
+		// 						frames: 6,
+		// 					},
+		// 				})
+		// 			);
 
-				if (!player.isInvincible && fullHearts.length > 0) {
-					fullHearts[fullHearts.length - 1].depleted = true;
-				} else if (fullHearts.length === 0) {
-					init();
+		// 			oposums.splice(i, 1);
+		// 		} else if (collisionDirection === "left" || collisionDirection === "right") {
+		// 			const fullHearts = hearts.filter((heart) => {
+		// 				return !heart.depleted;
+		// 			});
+
+		// 			if (!player.isInvincible && fullHearts.length > 0) {
+		// 				fullHearts[fullHearts.length - 1].depleted = true;
+		// 			} else if (fullHearts.length === 0) {
+		// 				init();
+		// 			}
+
+		// 			player.setIsInvincible();
+		// 		}
+		// 	}
+		// }
+
+		// Update eagle position
+		for (let i = eagles.length - 1; i >= 0; i--) {
+			const eagle = eagles[i];
+			eagle.update(timeStep, collisionBlocks);
+
+			// Jump on enemy
+			const collisionDirection = checkCollisions(player, eagle);
+			if (collisionDirection) {
+				if (collisionDirection === "bottom" && !player.isOnGround) {
+					player.velocity.y = -200;
+					sprites.push(
+						new Sprite({
+							x: eagle.x,
+							y: eagle.y,
+							width: 32,
+							height: 32,
+							imageSrc: "/images/enemy-death.png",
+							spriteCropbox: {
+								x: 0,
+								y: 0,
+								width: 40,
+								height: 41,
+								frames: 6,
+							},
+						})
+					);
+
+					eagles.splice(i, 1);
+				} else if (collisionDirection === "left" || collisionDirection === "right" || collisionDirection === "top") {
+					const fullHearts = hearts.filter((heart) => {
+						return !heart.depleted;
+					});
+
+					if (!player.isInvincible && fullHearts.length > 0) {
+						fullHearts[fullHearts.length - 1].depleted = true;
+					} else if (fullHearts.length === 0) {
+						init();
+					}
+
+					player.setIsInvincible();
 				}
-
-				player.setIsInvincible();
 			}
 		}
-	}
 
-	// Update eagle position
-	for (let i = eagles.length - 1; i >= 0; i--) {
-		const eagle = eagles[i];
-		eagle.update(deltaTime, collisionBlocks);
+		for (let i = sprites.length - 1; i >= 0; i--) {
+			const sprite = sprites[i];
+			sprite.update(timeStep);
 
-		// Jump on enemy
-		const collisionDirection = checkCollisions(player, eagle);
-		if (collisionDirection) {
-			if (collisionDirection === "bottom" && !player.isOnGround) {
-				player.velocity.y = -200;
+			if (sprite.iteration === 1) {
+				sprites.splice(i, 1);
+			}
+		}
+
+		for (let i = gems.length - 1; i >= 0; i--) {
+			const gem = gems[i];
+			gem.update(timeStep);
+
+			// Collect gems
+			const collisionDirection = checkCollisions(player, gem);
+			if (collisionDirection) {
+				// Create an item feedback animation
 				sprites.push(
 					new Sprite({
-						x: eagle.x,
-						y: eagle.y,
+						x: gem.x - 8,
+						y: gem.y - 8,
 						width: 32,
 						height: 32,
-						imageSrc: "/images/enemy-death.png",
+						imageSrc: "/images/item-feedback.png",
 						spriteCropbox: {
 							x: 0,
 							y: 0,
-							width: 40,
-							height: 41,
-							frames: 6,
+							width: 32,
+							height: 32,
+							frames: 5,
 						},
 					})
 				);
 
-				eagles.splice(i, 1);
-			} else if (collisionDirection === "left" || collisionDirection === "right" || collisionDirection === "top") {
-				const fullHearts = hearts.filter((heart) => {
-					return !heart.depleted;
-				});
+				// Remove a gem from the game
+				gems.splice(i, 1);
+				gemCount++;
 
-				if (!player.isInvincible && fullHearts.length > 0) {
-					fullHearts[fullHearts.length - 1].depleted = true;
-				} else if (fullHearts.length === 0) {
-					init();
+				if (gems.length === 0) {
+					console.log("YOU WIN!");
 				}
-
-				player.setIsInvincible();
 			}
 		}
-	}
 
-	for (let i = sprites.length - 1; i >= 0; i--) {
-		const sprite = sprites[i];
-		sprite.update(deltaTime);
-
-		if (sprite.iteration === 1) {
-			sprites.splice(i, 1);
+		// Track scroll post distance
+		if (player.x > SCROLL_POST_RIGHT && player.x < 1680) {
+			const scrollPostDistance = player.x - SCROLL_POST_RIGHT;
+			camera.x = scrollPostDistance;
 		}
-	}
 
-	for (let i = gems.length - 1; i >= 0; i--) {
-		const gem = gems[i];
-		gem.update(deltaTime);
-
-		// Collect gems
-		const collisionDirection = checkCollisions(player, gem);
-		if (collisionDirection) {
-			// Create an item feedback animation
-			sprites.push(
-				new Sprite({
-					x: gem.x - 8,
-					y: gem.y - 8,
-					width: 32,
-					height: 32,
-					imageSrc: "/images/item-feedback.png",
-					spriteCropbox: {
-						x: 0,
-						y: 0,
-						width: 32,
-						height: 32,
-						frames: 5,
-					},
-				})
-			);
-
-			// Remove a gem from the game
-			gems.splice(i, 1);
-			gemCount++;
-
-			if (gems.length === 0) {
-				console.log("YOU WIN!");
-			}
+		if (player.y < SCROLL_POST_TOP && camera.y > 0) {
+			const scrollPostDistance = SCROLL_POST_TOP - player.y;
+			camera.y = scrollPostDistance;
 		}
-	}
+		if (player.y > SCROLL_POST_BOTTOM) {
+			const scrollPostDistance = (player.y - SCROLL_POST_BOTTOM) * 0.75; // softer follow
+			camera.y = -scrollPostDistance;
+		}
 
-	// Track scroll post distance
-	if (player.x > SCROLL_POST_RIGHT && player.x < 1680) {
-		const scrollPostDistance = player.x - SCROLL_POST_RIGHT;
-		camera.x = scrollPostDistance;
-	}
-
-	if (player.y < SCROLL_POST_TOP && camera.y > 0) {
-		const scrollPostDistance = SCROLL_POST_TOP - player.y;
-		camera.y = scrollPostDistance;
-	}
-
-	if (player.y > SCROLL_POST_BOTTOM) {
-		const scrollPostDistance = player.y - SCROLL_POST_BOTTOM;
-		camera.y = -scrollPostDistance;
+		accumulatedTime -= timeStep;
 	}
 
 	// Render scene
 	c.save();
-	c.scale(dpr, dpr);
+	c.scale(dpr + 1, dpr + 1);
 	c.translate(-camera.x, camera.y);
 	c.clearRect(0, 0, canvas.width, canvas.height);
 	c.drawImage(oceanBackgroundCanvas, camera.x * 0.32, 0);
@@ -580,10 +595,10 @@ function animate(backgroundCanvas) {
 	c.drawImage(backgroundCanvas, 0, 0);
 	player.draw(c);
 
-	for (let i = oposums.length - 1; i >= 0; i--) {
-		const oposum = oposums[i];
-		oposum.draw(c);
-	}
+	// for (let i = oposums.length - 1; i >= 0; i--) {
+	// 	const oposum = oposums[i];
+	// 	oposum.draw(c);
+	// }
 
 	for (let i = eagles.length - 1; i >= 0; i--) {
 		const eagle = eagles[i];
@@ -604,7 +619,7 @@ function animate(backgroundCanvas) {
 
 	// UI save and restore
 	c.save();
-	c.scale(dpr, dpr);
+	c.scale(dpr + 1, dpr + 1);
 	for (let i = hearts.length - 1; i >= 0; i--) {
 		const heart = hearts[i];
 		heart.draw(c);
@@ -622,7 +637,7 @@ async function startRendering() {
 		if (!canvas || !c) {
 			throw new Error('Canvas not initialized');
 		}
-
+		console.log("it has been loaded successfully")
 		oceanBackgroundCanvas = await renderStaticLayers(oceanLayerData);
 		brambleBackgroundCanvas = await renderStaticLayers(brambleLayerData);
 		const backgroundCanvas = await renderStaticLayers(layersData);
@@ -640,4 +655,4 @@ async function startRendering() {
 init();
 startRendering();
 
-export { init, startRendering };
+export { init, startRendering, resetGameTiming };
