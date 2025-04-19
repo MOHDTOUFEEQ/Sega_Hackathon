@@ -1,4 +1,7 @@
 /* App.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* .App {
   display: flex;
@@ -8,6 +11,13 @@
   background-color: #f4f4f9;
   font-family: 'Arial', sans-serif;
 } */
+
+.App {
+  min-height: 100vh;
+  width: 100%;
+  background-color: #ffffff;
+  position: relative;
+}
 
 .start-screen {
   display: flex;
@@ -20,15 +30,12 @@
   padding: 40px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
   transition: transform 0.3s ease-in-out;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
-.App {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
-  background-color: #f4f4f9;
-  font-family: 'Arial', sans-serif;
-}
+
 .start-screen-content {
   max-width: 500px;
   width: 100%;
@@ -71,4 +78,37 @@
   justify-content: center;
   align-items: center;
   height: 100vh;
+}
+
+/* Results Screen Styles */
+/* .results-screen, .results-container, .results-title, etc. */
+
+/* Remove or comment out the conflicting Results styles */
+/* .results-screen, .results-container, .results-title, etc. */
+
+/* Contra-style pixelated text */
+.pixelated-text {
+  font-family: 'Press Start 2P', cursive;
+  image-rendering: pixelated;
+  -webkit-font-smoothing: none;
+  text-shadow: 2px 2px 0 #000;
+}
+
+/* Add a subtle scanline effect to the background */
+.results-screen::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.15),
+    rgba(0, 0, 0, 0.15) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+  pointer-events: none;
+  z-index: 1;
 }

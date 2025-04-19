@@ -1,20 +1,24 @@
+import bullet from "./bullet";
+
 const X_VELOCITY = 200;
 const JUMP_POWER = 350;
 const GRAVITY = 580;
 
 class Player {
-	constructor({ x, y, size, velocity = { x: 0, y: 0 } }) {
+	constructor({ x, y, size, velocity = { x: 0, y: 0 }, camera }) {
 		this.x = x;
 		this.y = y;
 		this.width = size;
 		this.height = size;
 		this.velocity = velocity;
+		this.camera = camera; // Store camera reference
 		this.isOnGround = false;
 		this.isImageLoaded = false;
+		this.health = 100;
 		this.image = new Image();
+		this.bullets = []; // in constructor
 
 		this.image.onload = () => {
-			console.log("Character image loaded successfully!");
 			this.isImageLoaded = true;
 		};
 
@@ -112,6 +116,16 @@ class Player {
 			try {
 				// First approach: Simplified drawing - just draw the whole image
 				c.drawImage(this.image, x, this.y, this.width, this.height);
+
+				// Draw hitbox for debugging
+				// c.strokeStyle = 'red';
+				// c.lineWidth = 2;
+				// c.strokeRect(
+				// 	this.hitbox.x * xScale, 
+				// 	this.hitbox.y, 
+				// 	this.hitbox.width, 
+				// 	this.hitbox.height
+				// );
 
 				// If the above works, then we can try the more complex sprite sheet approach:
 				/*
@@ -340,6 +354,18 @@ class Player {
 			}
 		}
 		this.isOnGround = false;
+	}
+
+	fire() {
+		// Get the player's current position relative to the camera
+		const playerScreenX = this.x - this.camera.x;
+		const playerScreenY = this.y - this.camera.y;
+		
+		// Create bullet at the player's screen position
+		const bulletX = this.facing === "right" ? playerScreenX + this.width : playerScreenX - 10;
+		const bulletY = playerScreenY + this.height / 2;
+		
+		this.bullets.push(new bullet(bulletX, bulletY, this.facing === "right" ? 8 : -8));
 	}
 }
 

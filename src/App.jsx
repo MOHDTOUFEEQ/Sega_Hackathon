@@ -1,16 +1,18 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import Results from './components/Results';
 import './App.css';
 
 function App() {
-  const navigate = useNavigate(); // ⬅️ for navigation
+  const navigate = useNavigate(); 
 
   const handleStartGame = () => {
-    navigate('/Game'); // ⬅️ navigate to the Game route
+    navigate('/Game'); 
   };
 
   return (
     <div className="App">
+    
       <div className="start-screen">
         <div className="start-screen-content">
           <h1 className="game-title">Welcome to the Game!</h1>

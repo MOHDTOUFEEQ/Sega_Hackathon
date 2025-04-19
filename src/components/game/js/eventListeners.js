@@ -1,4 +1,6 @@
 window.addEventListener('keydown', (event) => {
+  if (window.isGameOver) return; // Don't process input if game is over
+  
   switch (event.key) {
     case 'w':
       player.jump()
@@ -17,6 +19,8 @@ window.addEventListener('keydown', (event) => {
 })
 
 window.addEventListener('keyup', (event) => {
+  if (window.isGameOver) return; // Don't process input if game is over
+  
   switch (event.key) {
     case 'a':
       keys.a.pressed = false
@@ -26,6 +30,21 @@ window.addEventListener('keyup', (event) => {
       break
   }
 })
+
+window.addEventListener("mousedown", (e) => {
+  if (window.isGameOver) return; // Don't process input if game is over
+  
+  if (e.button === 0) {
+    player.fire();
+  }
+});
+
+window.addEventListener("mouseup", (e) => {
+  if (window.isGameOver) return; // Don't process input if game is over
+  
+  if (e.button === 0) {
+  }
+});
 
 // On return to game's tab, ensure delta time is reset
 document.addEventListener('visibilitychange', () => {

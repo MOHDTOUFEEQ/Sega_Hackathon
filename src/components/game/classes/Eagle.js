@@ -22,6 +22,12 @@ class Eagle {
     this.image.onerror = () => {
       console.error("Failed to load eagle image:", this.image.src);
     };
+    this.deathEffect = new Image()
+    this.deathEffect.src = '/src/components/game/images/enemy-death.png'
+    this.deathEffectLoaded = false
+    this.deathEffect.onload = () => {
+      this.deathEffectLoaded = true
+    }
     this.elapsedTime = 0
     this.currentFrame = 0
     this.sprites = {
@@ -43,9 +49,17 @@ class Eagle {
     }
     this.distanceTraveled = 0
     this.turningDistance = turningDistance
+    this.health = 100
+    this.isDead = false
+    this.deathAnimationTime = 0
+    this.deathAnimationDuration = 0.5 // seconds
   }
 
   draw(c) {
+    if (this.isDead) {
+      return;
+    }
+
     // Red square debug code
     // c.fillStyle = 'rgba(255, 0, 0, 0.5)'
     // c.fillRect(this.x, this.y, this.width, this.height)
@@ -70,6 +84,30 @@ class Eagle {
 
       c.save()
       c.scale(xScale, 1)
+
+      // Draw health bar only if not dead
+      if (!this.isDead) {
+        const healthBarWidth = 30
+        const healthBarHeight = 4
+        const healthBarX = x
+        const healthBarY = this.y - 10
+
+        // Background of health bar
+        c.fillStyle = 'rgba(0, 0, 0, 0.5)'
+        c.fillRect(healthBarX, healthBarY, healthBarWidth, healthBarHeight)
+
+        // Current health
+        c.fillStyle = this.health > 50 ? 'green' : this.health > 25 ? 'yellow' : 'red'
+        c.fillRect(healthBarX, healthBarY, (healthBarWidth * this.health) / 100, healthBarHeight)
+      }
+
+      // Add rotation when dead
+      if (this.isDead) {
+        c.translate(x + this.width/2, this.y + this.height/2)
+        c.rotate(Math.PI/2 * (this.deathAnimationTime / this.deathAnimationDuration))
+        c.translate(-(x + this.width/2), -(this.y + this.height/2))
+      }
+
       c.drawImage(
         this.image,
         this.currentSprite.x + this.currentSprite.width * this.currentFrame,
@@ -86,6 +124,12 @@ class Eagle {
   }
 
   update(deltaTime, collisionBlocks) {
+    if (this.isDead) {
+      this.deathAnimationTime += deltaTime
+      this.velocity.y += 980 * deltaTime // Fall when dead
+      this.y += this.velocity.y * deltaTime
+      return
+    }
     if (!deltaTime) return
 
     // Updating animation frames
@@ -172,6 +216,7 @@ class Eagle {
         this.hitbox.y <= collisionBlock.y + collisionBlock.height
       ) {
         // Check collision while player is going left
+        // eslint-disable-next-line no-compare-neg-zero
         if (this.velocity.x < -0) {
           this.hitbox.x = collisionBlock.x + collisionBlock.width + buffer
           this.x = this.hitbox.x
@@ -232,6 +277,13 @@ class Eagle {
       }
     }
     this.isOnGround = false
+  }
+
+  die() {
+    if (!this.isDead) {
+      this.isDead = true
+      this.velocity.y = -100 // Small jump when dying
+    }
   }
 }
 
