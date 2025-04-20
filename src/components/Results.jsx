@@ -10,10 +10,19 @@ const Results = () => {
   const [displayScore, setDisplayScore] = useState(0);
   const [displayGems, setDisplayGems] = useState(0);
   const [displayTime, setDisplayTime] = useState(0);
-
+  const [overallScore, setOverallScore] = useState(0);
   // Get state from Redux store
-  const { score, gems, timeTaken, isDead, killedMonster } = useAppSelector((state) => state.player);
-  const overallScore = score + gems * 10 - timeTaken;
+  const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime } = useAppSelector((state) => state.player);
+  useEffect(() => {
+    const calculateScore = () => {
+      if(killedMonster){
+        return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) + 25) + 50);
+      }
+      return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) - 25) - 50);
+    };
+
+    setOverallScore(calculateScore());
+  }, [score, gems, endingTime, startTime, killedMonster]);
 
   useEffect(() => {
     setIsVisible(true);

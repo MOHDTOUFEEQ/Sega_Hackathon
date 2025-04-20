@@ -1,25 +1,35 @@
-import React, { useEffect, useRef, useState } from "react";
-import { init, startRendering } from "./js/index.js";
-import "../../App.css";
-import { useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../../store/hooks";
-import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled } from "../../store/playerSlice";
+import React, { useEffect, useRef, useState } from 'react';
+import { init, startRendering } from './js/index.js';
+import '../../App.css';
+import { useNavigate } from 'react-router-dom';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
+import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setEndingTime } from '../../store/playerSlice';
 
 let gameInitialized = false;
 let gameLoop = null;
 
 export default function Game() {
-	const canvasRef = useRef(null);
-	const navigate = useNavigate();
-	const dispatch = useAppDispatch();
-	const [isGameOver, setIsGameOver] = useState(false);
-	const [isWinner, setIsWinner] = useState(false);
-	const [gameTime, setGameTime] = useState(0);
-	const timerRef = useRef(null);
+  const canvasRef = useRef(null);
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const [isGameOver, setIsGameOver] = useState(false);
+  const [gameTime, setGameTime] = useState(0);
+  const timerRef = useRef(null);
+  const { score, gems, timeTaken, isDead, killedMonster, startTime, endingTime } = useAppSelector((state) => state.player);
+  const [overallScore, setOverallScore] = useState(0);
+  
+  useEffect(() => {
+    const calculateScore = () => {
+      if(killedMonster){
+        return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) + 25) + 50);
+      }
+      return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) - 25) - 50);
+    };
+    setOverallScore(calculateScore());
+  }, [score, gems, endingTime, startTime, killedMonster]);
 
-	useEffect(() => {
-		const canvas = canvasRef.current;
-		console.log("Mounting Game component...");
+  useEffect(() => {
+    const canvas = canvasRef.current;
 
 		if (gameInitialized) return;
 		gameInitialized = true;
@@ -33,14 +43,17 @@ export default function Game() {
 			window.gameCanvas = canvas;
 			window.isGameOver = false;
 
-			try {
-				init();
-				startRendering();
-				console.log("✅ Game initialized!");
-			} catch (error) {
-				console.error("❌ Error during game initialization:", error);
-			}
-		};
+      try {
+        dispatch(setStartTime(Date.now()));
+        dispatch(setMonsterKilled(false));
+        dispatch(collectGem(0));
+        dispatch(setEndingTime(0));
+        init();
+        startRendering();
+      } catch (error) {
+        console.error("❌ Error during game initialization:", error);
+      }
+    };
 
 		waitForCanvas();
 
@@ -169,12 +182,12 @@ export default function Game() {
                         <p className="text-red-400 text-sm uppercase tracking-widest font-bold">RANK</p>
                         <p className="text-6xl font-black text-red-500 mt-2">#2</p>
                     </div> */}
-								<div className="text-left">
-									<p className="text-red-400 text-sm uppercase tracking-widest font-bold">SCORE</p>
-									<p className="text-6xl font-black text-red-500 mt-2">1500</p>
-								</div>
-							</div>
-						</div>
+                    <div className="text-left">
+                        <p className="text-red-400 text-sm uppercase tracking-widest font-bold">SCORE</p>
+                        <p className="text-6xl font-black text-red-500 mt-2">{overallScore}</p>
+                    </div>
+                </div>
+            </div>
 
 						{/* Contra-Style Button */}
 						<button

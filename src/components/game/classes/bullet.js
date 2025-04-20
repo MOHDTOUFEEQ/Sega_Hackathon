@@ -9,7 +9,6 @@ class bullet {
     this.height = 5;
     this.speed = speed;
     this.color = 'yellow';
-    console.log("Bullet created at:", x, y);
   }
 
   update() {

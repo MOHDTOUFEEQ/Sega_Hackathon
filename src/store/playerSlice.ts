@@ -6,6 +6,8 @@ interface PlayerState {
   isDead: boolean;
   killedMonster: boolean;
   timeTaken: number;
+  startTime: number;
+  endingTime: number;
 }
 
 const initialState: PlayerState = {
@@ -14,6 +16,8 @@ const initialState: PlayerState = {
   isDead: false,
   killedMonster: false,
   timeTaken: 0,
+  startTime: 0,
+  endingTime: 0,
 };
 
 const playerSlice = createSlice({
@@ -24,16 +28,22 @@ const playerSlice = createSlice({
       state.score += action.payload;
     },
     collectGem: (state, action: PayloadAction<number>) => {
-      state.gems += action.payload;
+      state.gems = action.payload;
     },
     setPlayerDead: (state) => {
       state.isDead = true;
     },
-    setMonsterKilled: (state) => {
-      state.killedMonster = true;
+    setMonsterKilled: (state, action: PayloadAction<boolean>) => {
+      state.killedMonster = action.payload;
     },
     setTimeTaken: (state, action: PayloadAction<number>) => {
       state.timeTaken = action.payload;
+    },
+    setStartTime: (state, action: PayloadAction<number>) => {
+      state.startTime = action.payload;
+    },
+    setEndingTime: (state, action: PayloadAction<number>) => {
+      state.endingTime = action.payload;
     },
     resetPlayerState: () => initialState,
   },
@@ -45,6 +55,8 @@ export const {
   setPlayerDead,
   setMonsterKilled,
   setTimeTaken,
+  setStartTime,
+  setEndingTime,
   resetPlayerState,
 } = playerSlice.actions;
 

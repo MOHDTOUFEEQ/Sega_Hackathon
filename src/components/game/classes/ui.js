@@ -1,3 +1,4 @@
+
 class gameState {
 	constructor() {
 		this.healthBarFill = document.getElementById("healthBarFill");

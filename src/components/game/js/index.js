@@ -832,8 +832,11 @@ function animate(backgroundCanvas) {
 					const gameOverScreen = document.getElementById("gameOverScreen");
 					window.isGameOver = true;
 					sound.playerDeath.play();
+					
+					store.dispatch(setEndingTime(Date.now()));
 					store.dispatch(setPlayerDead()); // Update Redux store directly
 					store.dispatch(collectGem(gemCount)); // Update Redux store directly
+					store.dispatch(setMonsterKilled(false)); // Update Redux store directly
 					if (gameOverScreen) {
 						gameOverScreen.classList.remove("hidden");
 					}
@@ -1021,9 +1024,10 @@ function animate(backgroundCanvas) {
 
 						// Show winner screen and update game state
 						window.isWinner = true;
-						store.dispatch(setMonsterKilled()); // Update Redux store directly
 						store.dispatch(collectGem(gemCount));
-
+						store.dispatch(setEndingTime(Date.now()));
+						store.dispatch(setMonsterKilled(true)); // Update Redux store directly
+						
 						// Display the winner screen
 						setTimeout(() => {
 							const winnerScreen = document.getElementById("winnerScreen");
@@ -1038,6 +1042,8 @@ function animate(backgroundCanvas) {
 								}
 							}
 						}, 1000); // Short delay to show the death animation
+						// Show game over screen
+						
 					}
 					break;
 				}
