@@ -1,4 +1,5 @@
 import bullet from "./bullet";
+import sound from "../js/sound";
 
 const X_VELOCITY = 200;
 const JUMP_POWER = 350;
@@ -26,7 +27,7 @@ class Player {
 			console.error("Failed to load character image:", this.image.src);
 		};
 
-		this.image.src = '/src/components/game/images/character.png';
+		this.image.src = "/src/components/game/images/character.png";
 
 		this.elapsedTime = 0;
 		this.currentFrame = 0;
@@ -121,9 +122,9 @@ class Player {
 				// c.strokeStyle = 'red';
 				// c.lineWidth = 2;
 				// c.strokeRect(
-				// 	this.hitbox.x * xScale, 
-				// 	this.hitbox.y, 
-				// 	this.hitbox.width, 
+				// 	this.hitbox.x * xScale,
+				// 	this.hitbox.y,
+				// 	this.hitbox.width,
 				// 	this.hitbox.height
 				// );
 
@@ -272,6 +273,7 @@ class Player {
 		// Handle jumping
 		if ((keys.Space.pressed || keys.w.pressed || keys.ArrowUp.pressed) && this.isOnGround && this.jumpKeyReleased && this.canJump) {
 			this.jump();
+			sound.jump.play();
 			this.jumpKeyReleased = false;
 		}
 
@@ -357,14 +359,15 @@ class Player {
 	}
 
 	fire() {
+		sound.gun.play();
 		// Get the player's current position relative to the camera
 		const playerScreenX = this.x - this.camera.x;
 		const playerScreenY = this.y - this.camera.y;
-		
+
 		// Create bullet at the player's screen position
 		const bulletX = this.facing === "right" ? playerScreenX + this.width : playerScreenX - 10;
 		const bulletY = playerScreenY + this.height / 2;
-		
+
 		this.bullets.push(new bullet(bulletX, bulletY, this.facing === "right" ? 8 : -8));
 	}
 }
