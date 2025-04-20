@@ -1,34 +1,35 @@
-import Player from '../classes/Player.js';
-import Sprite from '../classes/Sprite.js';
-import Heart from '../classes/Heart.js';
-import Eagle from '../classes/Eagle.js';
-import Oposum from '../classes/Oposum.js';
-import CollisionBlock from '../classes/CollisionBlock.js';
-import Platform from '../classes/Platform.js';
-import gameState from '../classes/ui.js';
-import { loadImage, checkCollisions } from './utils.js';
-import collisions from '../data/collisions.js';
-import l_Gems from '../data/l_Gems.js';
-import l_New_Layer_1 from '../data/l_New_Layer_1.js';
-import l_New_Layer_2 from '../data/l_New_Layer_2.js';
-import l_New_Layer_8 from '../data/l_New_Layer_8.js';
-import l_Back_Tiles from '../data/l_Back_Tiles.js';
-import l_Decorations from '../data/l_Decorations.js';
-import l_Front_Tiles from '../data/l_Front_Tiles.js';
-import l_Shrooms from '../data/l_Shrooms.js';
-import l_Collisions from '../data/l_Collisions.js';
-import l_Grass from '../data/l_Grass.js';
-import l_Trees from '../data/l_Trees.js';
-import Enemy from '../classes/Enemy.js';
-import BigMonster from '../classes/BigMonster.js';
-import { store } from '../../../store/store.js';
-import { collectGem, setMonsterKilled, setPlayerDead } from '../../../store/playerSlice.js';
-
+import Player from "../classes/Player.js";
+import Sprite from "../classes/Sprite.js";
+import Heart from "../classes/Heart.js";
+import Eagle from "../classes/Eagle.js";
+import Oposum from "../classes/Oposum.js";
+import CollisionBlock from "../classes/CollisionBlock.js";
+import Platform from "../classes/Platform.js";
+import gameState from "../classes/ui.js";
+import { loadImage, checkCollisions } from "./utils.js";
+import collisions from "../data/collisions.js";
+import l_Gems from "../data/l_Gems.js";
+import l_New_Layer_1 from "../data/l_New_Layer_1.js";
+import l_New_Layer_2 from "../data/l_New_Layer_2.js";
+import l_New_Layer_8 from "../data/l_New_Layer_8.js";
+import l_Back_Tiles from "../data/l_Back_Tiles.js";
+import l_Decorations from "../data/l_Decorations.js";
+import l_Front_Tiles from "../data/l_Front_Tiles.js";
+import l_Shrooms from "../data/l_Shrooms.js";
+import l_Collisions from "../data/l_Collisions.js";
+import l_Grass from "../data/l_Grass.js";
+import l_Trees from "../data/l_Trees.js";
+import Enemy from "../classes/Enemy.js";
+import BigMonster from "../classes/BigMonster.js";
+import { store } from "../../../store/store.js";
+import { collectGem, setMonsterKilled, setPlayerDead } from "../../../store/playerSlice.js";
+import sound from "./sound.js";
 // Initialize variables
 let canvas;
 let c;
 const dpr = 2;
 let isFiring = false;
+let soundtrack; // Add this variable to track the soundtrack
 
 // Function to initialize canvas
 function initializeCanvas() {
@@ -36,13 +37,13 @@ function initializeCanvas() {
 		// Use the global canvas reference
 		canvas = window.gameCanvas;
 		if (!canvas) {
-			console.error('Canvas element not found');
+			console.error("Canvas element not found");
 			return false;
 		}
-		
-		c = canvas.getContext('2d');
+
+		c = canvas.getContext("2d");
 		if (!c) {
-			console.error('Could not get canvas context');
+			console.error("Could not get canvas context");
 			return false;
 		}
 
@@ -52,7 +53,7 @@ function initializeCanvas() {
 
 		return true;
 	} catch (error) {
-		console.error('Error initializing canvas:', error);
+		console.error("Error initializing canvas:", error);
 		return false;
 	}
 }
@@ -181,6 +182,7 @@ let gems = [];
 let gemUI;
 let gemCount = 0;
 let bigMonster;
+let specialTiles139 = []; // Add this array to track special tiles
 
 // Camera settings
 let camera = {
@@ -196,58 +198,73 @@ let brambleBackgroundCanvas = null;
 
 // Keyboard controls
 const keys = {
-	w: { pressed: false },
+	w: { pressed: false, soundPlayed: false },
 	a: { pressed: false },
 	d: { pressed: false },
 	ArrowLeft: { pressed: false },
 	ArrowRight: { pressed: false },
-	ArrowUp: { pressed: false },
+	ArrowUp: { pressed: false, soundPlayed: false },
 	Space: { pressed: false },
-	mouseLeft: { pressed: false } 
+	mouseLeft: { pressed: false },
 };
-
+// Player controls
 // Add event listeners for keyboard controls
-window.addEventListener('keydown', (event) => {
+window.addEventListener("keydown", (event) => {
 	switch (event.key) {
-		case 'w':
-		case 'ArrowUp':
+		case "w":
 			keys.w.pressed = true;
+			if (player.isOnGround && !keys.w.soundPlayed) {
+				sound.jump.play();
+				keys.w.soundPlayed = true;
+			}
 			break;
-		case 'a':
-		case 'ArrowLeft':
+		case "ArrowUp":
+			keys.ArrowUp.pressed = true;
+			if (player.isOnGround && !keys.ArrowUp.soundPlayed) {
+				sound.jump.play();
+				keys.ArrowUp.soundPlayed = true;
+			}
+			break;
+		case "a":
+		case "ArrowLeft":
 			keys.a.pressed = true;
 			break;
-		case 'd':
-		case 'ArrowRight':
+		case "d":
+		case "ArrowRight":
 			keys.d.pressed = true;
 			break;
-		case ' ':
+		case " ":
 			keys.Space.pressed = true;
 			break;
 	}
 });
 
-window.addEventListener('keyup', (event) => {
+window.addEventListener("keyup", (event) => {
 	switch (event.key) {
-		case 'w':
-		case 'ArrowUp':
+		case "w":
 			keys.w.pressed = false;
+			keys.w.soundPlayed = false; // Reset the sound flag when key is released
 			break;
-		case 'a':
-		case 'ArrowLeft':
+		case "ArrowUp":
+			keys.ArrowUp.pressed = false;
+			keys.ArrowUp.soundPlayed = false; // Reset the sound flag when key is released
+			break;
+		case "a":
+		case "ArrowLeft":
 			keys.a.pressed = false;
 			break;
-		case 'd':
-		case 'ArrowRight':
+		case "d":
+		case "ArrowRight":
 			keys.d.pressed = false;
 			break;
-		case ' ':
+		case " ":
 			keys.Space.pressed = false;
 			break;
 	}
 });
+// Player shooting
 window.addEventListener("mousedown", (e) => {
-	if (e.button === 0) {
+	if (e.button === 0 && !window.isGameOver) {
 		player.fire();
 	}
 });
@@ -260,7 +277,7 @@ window.addEventListener("mouseup", (e) => {
 // Timing control
 let lastTime = performance.now();
 let accumulatedTime = 0;
-const timeStep = 1/60; // 60 FPS
+const timeStep = 1 / 60; // 60 FPS
 const MAX_DELTA_TIME = 0.1; // Maximum delta time in seconds
 
 function resetGameTiming() {
@@ -268,10 +285,65 @@ function resetGameTiming() {
 	accumulatedTime = 0;
 }
 
+function initSpecialTiles() {
+	l_Front_Tiles.forEach((row, y) => {
+		row.forEach((symbol, x) => {
+			if (symbol === 139) {
+				// Target the tile ID 139
+				specialTiles139.push({
+					x: x * blockSize,
+					y: y * blockSize,
+					width: blockSize,
+					height: blockSize,
+					triggered: false,
+				});
+			}
+		});
+	});
+}
+// Check for fire tiles
+function checkSpecialTileCollisions() {
+	for (let i = 0; i < specialTiles139.length; i++) {
+		const tile = specialTiles139[i];
+
+		// Skip already triggered tiles
+		if (tile.triggered) continue;
+
+		// Check for collision with player
+		if (player.x < tile.x + tile.width && player.x + player.width > tile.x && player.y < tile.y + tile.height && player.y + player.height > tile.y) {
+			// Player touched this tile!
+			console.log("Player touched special tile 139 at", tile.x, tile.y);
+
+			// Your custom action here - example:
+
+			player.health -= 0.5;
+			sound.touchFire.play();
+			player.setIsInvincible();
+			// Mark as triggered if it should only happen once
+			tile.triggered = true;
+			// Reset trigger after 3 seconds
+			setTimeout(() => {
+				tile.triggered = false;
+			}, 3000);
+		}
+	}
+}
+
 function init() {
 	if (!initializeCanvas()) {
-		console.error('Failed to initialize canvas');
+		console.error("Failed to initialize canvas");
 		return;
+	}
+
+	// Reset game state variables
+	window.isGameOver = false;
+	window.isWinner = false;
+
+	// Start playing the soundtrack
+	if (sound.soundtrack) {
+		sound.soundtrack.loop = true; // Make the soundtrack loop
+		sound.soundtrack.play();
+		soundtrack = sound.soundtrack;
 	}
 
 	gems = [];
@@ -325,10 +397,9 @@ function init() {
 		y: 100,
 		size: 32,
 		velocity: { x: 0, y: 0 },
-		camera: camera
+		camera: camera,
 	});
-	
-	
+
 	eagles = [
 		new Eagle({
 			x: 816,
@@ -476,13 +547,15 @@ function init() {
 	bigMonster = new BigMonster({
 		x: 1800,
 		y: 100,
-		imageSrc: "/src/components/game/images/big-monster.png"
+		imageSrc: "/src/components/game/images/big-monster.png",
 	});
+
+	initSpecialTiles(); // Initialize special tiles detection
 }
 
 function animate(backgroundCanvas) {
 	if (!canvas || !c) {
-		console.error('Canvas not initialized');
+		console.error("Canvas not initialized");
 		return;
 	}
 
@@ -497,8 +570,8 @@ function animate(backgroundCanvas) {
 
 	// Update game state at fixed time steps
 	while (accumulatedTime >= timeStep) {
-		// Skip all updates if game is over
-		if (!window.isGameOver) {
+		// Skip all updates if game is over or player won
+		if (!window.isGameOver && !window.isWinner) {
 			// Update player position
 			player.handleInput(keys);
 			player.update(timeStep, collisionBlocks);
@@ -506,36 +579,32 @@ function animate(backgroundCanvas) {
 				player.fire();
 			}
 
-			player.bullets.forEach(bullet => bullet.update());
-			
+			player.bullets.forEach((bullet) => bullet.update());
+
 			// Check bullet collisions with obstacles and enemies
 			for (let i = player.bullets.length - 1; i >= 0; i--) {
 				const bullet = player.bullets[i];
 				let bulletHit = false;
-				
+
 				// Check collision with collision blocks
 				for (let j = 0; j < collisionBlocks.length; j++) {
 					const block = collisionBlocks[j];
-					if (bullet.x < block.x + block.width &&
-						bullet.x + bullet.width > block.x &&
-						bullet.y < block.y + block.height &&
-						bullet.y + bullet.height > block.y) {
+					if (bullet.x < block.x + block.width && bullet.x + bullet.width > block.x && bullet.y < block.y + block.height && bullet.y + bullet.height > block.y) {
 						bulletHit = true;
 						break;
 					}
 				}
-				
+
 				// Check collision with oposums
 				for (let j = oposums.length - 1; j >= 0; j--) {
 					const oposum = oposums[j];
-					
-					if (bullet.x < oposum.x + oposum.width &&
-						bullet.x + bullet.width > oposum.x &&
-						bullet.y < oposum.y + oposum.height &&
-						bullet.y + bullet.height > oposum.y) {
-						oposum.health -= 20; // Reduce health by 10%
+
+					if (bullet.x < oposum.x + oposum.width && bullet.x + bullet.width > oposum.x && bullet.y < oposum.y + oposum.height && bullet.y + bullet.height > oposum.y) {
+						oposum.health -= 15; // Reduce health by 15%
+						sound.hitEnemy.play();
 						if (oposum.health <= 0) {
 							oposum.die();
+							sound.bumpSide.play();
 							sprites.push(
 								new Sprite({
 									x: oposum.x,
@@ -558,17 +627,16 @@ function animate(backgroundCanvas) {
 						break;
 					}
 				}
-				
+
 				// Check collision with eagles
 				for (let j = eagles.length - 1; j >= 0; j--) {
 					const eagle = eagles[j];
-					if (bullet.x < eagle.x + eagle.width &&
-						bullet.x + bullet.width > eagle.x &&
-						bullet.y < eagle.y + eagle.height &&
-						bullet.y + bullet.height > eagle.y) {
-						eagle.health -= 20; // Reduce health by 10%
+					if (bullet.x < eagle.x + eagle.width && bullet.x + bullet.width > eagle.x && bullet.y < eagle.y + eagle.height && bullet.y + bullet.height > eagle.y) {
+						eagle.health -= 15; // Reduce health by 15%
+						sound.hitEnemy.play();
 						if (eagle.health <= 0) {
 							eagle.die();
+							sound.bumpSide.play();
 							sprites.push(
 								new Sprite({
 									x: eagle.x,
@@ -591,13 +659,13 @@ function animate(backgroundCanvas) {
 						break;
 					}
 				}
-				
+
 				if (bulletHit) {
 					player.bullets.splice(i, 1);
 				}
 			}
-			
-			player.bullets = player.bullets.filter(bullet => bullet.x < canvas.width && bullet.x > 0);
+
+			player.bullets = player.bullets.filter((bullet) => bullet.x < canvas.width && bullet.x > 0);
 
 			// Update oposum position
 			for (let i = oposums.length - 1; i >= 0; i--) {
@@ -609,9 +677,10 @@ function animate(backgroundCanvas) {
 				if (collisionDirection) {
 					if (collisionDirection === "bottom" && !player.isOnGround) {
 						player.velocity.y = -200;
-						
+
 						if (!oposum.isDead) {
 							oposum.die();
+							sound.bump.play();
 							sprites.push(
 								new Sprite({
 									x: oposum.x,
@@ -630,31 +699,14 @@ function animate(backgroundCanvas) {
 							);
 							oposums.splice(i, 1);
 						}
-					} else if ((collisionDirection === "left" || collisionDirection === "right") && player.isOnGround && player.isRolling) {
-						if (!oposum.isDead) {
-							oposum.die();
-							sprites.push(
-								new Sprite({
-									x: oposum.x,
-									y: oposum.y,
-									width: 32,
-									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
-									spriteCropbox: {
-										x: 0,
-										y: 0,
-										width: 40,
-										height: 41,
-										frames: 6,
-									},
-								})
-							);
-							oposums.splice(i, 1);
-						}
+
+						// Check if player bumping into enemy
 					} else if (collisionDirection === "left" || collisionDirection === "right") {
-						player.health -= 10;
+						player.health -= 15;
+						sound.hurt.play();
 						if (!oposum.isDead) {
 							oposum.die();
+							sound.bumpSide.play();
 							sprites.push(
 								new Sprite({
 									x: oposum.x,
@@ -683,13 +735,15 @@ function animate(backgroundCanvas) {
 				const eagle = eagles[i];
 				eagle.update(timeStep, collisionBlocks);
 
-				// Jump on enemy
+				// Jump on eagle
 				const collisionDirection = checkCollisions(player, eagle);
 				if (collisionDirection) {
 					if (collisionDirection === "bottom" && !player.isOnGround) {
 						player.velocity.y = -200;
+						sound.bump.play();
 						if (!eagle.isDead) {
 							eagle.die();
+							sound.bump.play();
 							sprites.push(
 								new Sprite({
 									x: eagle.x,
@@ -709,9 +763,11 @@ function animate(backgroundCanvas) {
 							eagles.splice(i, 1);
 						}
 					} else if (collisionDirection === "left" || collisionDirection === "right" || collisionDirection === "top") {
-						player.health -= 10;
+						player.health -= 15;
+						sound.hurt.play();
 						if (!eagle.isDead) {
 							eagle.die();
+							sound.bumpSide.play();
 							sprites.push(
 								new Sprite({
 									x: eagle.x,
@@ -739,51 +795,47 @@ function animate(backgroundCanvas) {
 			for (let i = enemies.length - 1; i >= 0; i--) {
 				const enemy = enemies[i];
 				enemy.update(timeStep, collisionBlocks);
-				
+
 				// Check bullet collisions with player
 				for (let j = enemy.bullets.length - 1; j >= 0; j--) {
 					const bullet = enemy.bullets[j];
-					
+
 					// Check if bullet has traveled maximum distance
 					if (Math.abs(bullet.x - bullet.initialX) >= 300) {
 						enemy.bullets.splice(j, 1);
 						continue;
 					}
-					
+
 					// Check collision with barriers
 					let bulletHit = false;
 					for (let k = 0; k < collisionBlocks.length; k++) {
 						const block = collisionBlocks[k];
-						if (bullet.x < block.x + block.width &&
-							bullet.x + bullet.width > block.x &&
-							bullet.y < block.y + block.height &&
-							bullet.y + bullet.height > block.y) {
+						if (bullet.x < block.x + block.width && bullet.x + bullet.width > block.x && bullet.y < block.y + block.height && bullet.y + bullet.height > block.y) {
 							bulletHit = true;
 							break;
 						}
 					}
-					
+
 					if (bulletHit) {
 						enemy.bullets.splice(j, 1);
 						continue;
 					}
-					
-					if (bullet.x < player.x + player.width &&
-						bullet.x + bullet.width > player.x &&
-						bullet.y < player.y + player.height &&
-						bullet.y + bullet.height > player.y) {
-						player.health -= 10;
+					// Check if bullet hits player
+					if (bullet.x < player.x + player.width && bullet.x + bullet.width > player.x && bullet.y < player.y + player.height && bullet.y + bullet.height > player.y) {
+						player.health -= 15;
+						sound.hurt.play();
 						enemy.bullets.splice(j, 1);
 						player.setIsInvincible();
 					}
 				}
 				if (player.health <= 0) {
-					const gameOverScreen = document.getElementById('gameOverScreen');
+					const gameOverScreen = document.getElementById("gameOverScreen");
 					window.isGameOver = true;
+					sound.playerDeath.play();
 					store.dispatch(setPlayerDead()); // Update Redux store directly
 					store.dispatch(collectGem(gemCount)); // Update Redux store directly
 					if (gameOverScreen) {
-						gameOverScreen.classList.remove('hidden');
+						gameOverScreen.classList.remove("hidden");
 					}
 				}
 
@@ -792,8 +844,10 @@ function animate(backgroundCanvas) {
 				if (collisionDirection) {
 					if (collisionDirection === "bottom" && !player.isOnGround) {
 						player.velocity.y = -200;
+
 						if (!enemy.isDead) {
 							enemy.die();
+							sound.bump.play();
 							sprites.push(
 								new Sprite({
 									x: enemy.x,
@@ -812,31 +866,13 @@ function animate(backgroundCanvas) {
 							);
 							enemies.splice(i, 1);
 						}
-					} else if ((collisionDirection === "left" || collisionDirection === "right") && player.isOnGround && player.isRolling) {
-						if (!enemy.isDead) {
-							enemy.die();
-							sprites.push(
-								new Sprite({
-									x: enemy.x,
-									y: enemy.y,
-									width: 32,
-									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
-									spriteCropbox: {
-										x: 0,
-										y: 0,
-										width: 40,
-										height: 41,
-										frames: 6,
-									},
-								})
-							);
-							enemies.splice(i, 1);
-						}
+						// Check if player bumping into enemy
 					} else if (collisionDirection === "left" || collisionDirection === "right") {
-						player.health -= 10;
+						player.health -= 15;
+						sound.hurt.play();
 						if (!enemy.isDead) {
 							enemy.die();
+							sound.bumpSide.play();
 							sprites.push(
 								new Sprite({
 									x: enemy.x,
@@ -858,17 +894,16 @@ function animate(backgroundCanvas) {
 						player.setIsInvincible();
 					}
 				}
-				
+
 				// Check bullet collisions with enemy
 				for (let j = player.bullets.length - 1; j >= 0; j--) {
 					const bullet = player.bullets[j];
-					if (bullet.x < enemy.x + enemy.width &&
-						bullet.x + bullet.width > enemy.x &&
-						bullet.y < enemy.y + enemy.height &&
-						bullet.y + bullet.height > enemy.y) {
-						enemy.health -= 20;
+					if (bullet.x < enemy.x + enemy.width && bullet.x + bullet.width > enemy.x && bullet.y < enemy.y + enemy.height && bullet.y + bullet.height > enemy.y) {
+						enemy.health -= 15; // Reduce health by 15%
+						sound.hitEnemy.play();
 						if (enemy.health <= 0 && !enemy.isDead) {
 							enemy.die();
+							sound.bumpSide.play();
 							sprites.push(
 								new Sprite({
 									x: enemy.x,
@@ -930,7 +965,7 @@ function animate(backgroundCanvas) {
 					// Remove a gem from the game
 					gems.splice(i, 1);
 					gemCount++;
-
+					sound.collect.play();
 				}
 			}
 
@@ -957,15 +992,13 @@ function animate(backgroundCanvas) {
 			// Check bullet collisions with BigMonster
 			for (let i = player.bullets.length - 1; i >= 0; i--) {
 				const bullet = player.bullets[i];
-				if (bullet.x < bigMonster.x + bigMonster.width &&
-					bullet.x + bullet.width > bigMonster.x &&
-					bullet.y < bigMonster.y + bigMonster.height &&
-					bullet.y + bullet.height > bigMonster.y) {
+				if (bullet.x < bigMonster.x + bigMonster.width && bullet.x + bullet.width > bigMonster.x && bullet.y < bigMonster.y + bigMonster.height && bullet.y + bullet.height > bigMonster.y) {
 					bigMonster.health -= 5; // Reduce monster health by 5
 					player.bullets.splice(i, 1); // Remove the bullet
-					
+
 					// Check if monster is dead
 					if (bigMonster.health <= 0) {
+						sound.win.play();
 						// Add death animation sprite
 						sprites.push(
 							new Sprite({
@@ -985,27 +1018,37 @@ function animate(backgroundCanvas) {
 						);
 						// Remove the monster from the game
 						bigMonster = null;
-						// Show game over screen
-						const gameOverScreen = document.getElementById('gameOverScreen');
-						window.isGameOver = true;
+
+						// Show winner screen and update game state
+						window.isWinner = true;
 						store.dispatch(setMonsterKilled()); // Update Redux store directly
 						store.dispatch(collectGem(gemCount));
-						if (gameOverScreen) {
-							gameOverScreen.classList.remove('hidden');
-						}
+
+						// Display the winner screen
+						setTimeout(() => {
+							const winnerScreen = document.getElementById("winnerScreen");
+							if (winnerScreen) {
+								winnerScreen.classList.remove("hidden");
+							} else {
+								console.error("Winner screen element not found");
+								// Fallback to game over screen if winner screen doesn't exist
+								const gameOverScreen = document.getElementById("gameOverScreen");
+								if (gameOverScreen) {
+									gameOverScreen.classList.remove("hidden");
+								}
+							}
+						}, 1000); // Short delay to show the death animation
 					}
 					break;
 				}
 			}
 
 			// Check BigMonster bullet collisions with player
-			if (bigMonster) { // Only check if monster is still alive
+			if (bigMonster) {
+				// Only check if monster is still alive
 				for (let i = bigMonster.bullets.length - 1; i >= 0; i--) {
 					const bullet = bigMonster.bullets[i];
-					if (bullet.x < player.x + player.width &&
-						bullet.x + bullet.width > player.x &&
-						bullet.y < player.y + player.height &&
-						bullet.y + bullet.height > player.y) {
+					if (bullet.x < player.x + player.width && bullet.x + bullet.width > player.x && bullet.y < player.y + player.height && bullet.y + bullet.height > player.y) {
 						player.health -= 5; // Reduce player health by 5
 						bigMonster.bullets.splice(i, 1); // Remove the bullet
 						player.setIsInvincible(); // Make player temporarily invincible
@@ -1013,6 +1056,9 @@ function animate(backgroundCanvas) {
 					}
 				}
 			}
+
+			// Check for collision with special tiles
+			checkSpecialTileCollisions();
 		}
 
 		accumulatedTime -= timeStep;
@@ -1029,7 +1075,7 @@ function animate(backgroundCanvas) {
 	player.draw(c);
 
 	// Draw bullets (already in screen coordinates)
-	player.bullets.forEach(bullet => {
+	player.bullets.forEach((bullet) => {
 		bullet.draw(c);
 	});
 
@@ -1042,13 +1088,13 @@ function animate(backgroundCanvas) {
 		const eagle = eagles[i];
 		eagle.draw(c);
 	}
-	
+
 	// Draw enemies
 	for (let i = enemies.length - 1; i >= 0; i--) {
 		const enemy = enemies[i];
 		enemy.draw(c);
 	}
-	
+
 	for (let i = sprites.length - 1; i >= 0; i--) {
 		const sprite = sprites[i];
 		sprite.draw(c);
@@ -1069,7 +1115,34 @@ function animate(backgroundCanvas) {
 	// UI save and restore
 	c.save();
 	const ui = new gameState();
-	ui.updateHealthBar(player.health);
+	ui.updateHealthBar(player.health, sound.lowHealth);
+
+	// Add tracking properties if they don't exist yet
+	if (!player.lowHealthAlertPlayed) {
+		player.lowHealthAlertPlayed = {
+			medium: false,
+			critical: false,
+		};
+	}
+
+	// Play medium alert sound once when health drops below 60
+	if (player.health <= 60 && !player.lowHealthAlertPlayed.medium) {
+		sound.lowHealth.play();
+		player.lowHealthAlertPlayed.medium = true;
+	} else if (player.health > 60 && player.lowHealthAlertPlayed.medium) {
+		// Reset if health goes back above threshold
+		player.lowHealthAlertPlayed.medium = false;
+	}
+
+	// Play critical alert sound once when health drops below 30
+	if (player.health <= 30 && !player.lowHealthAlertPlayed.critical) {
+		sound.lowHealth.play();
+		player.lowHealthAlertPlayed.critical = true;
+	} else if (player.health > 30 && player.lowHealthAlertPlayed.critical) {
+		// Reset if health goes back above threshold
+		player.lowHealthAlertPlayed.critical = false;
+	}
+
 	c.scale(dpr + 1, dpr + 1);
 	// for (let i = hearts.length - 1; i >= 0; i--) {
 	// 	const heart = hearts[i];
@@ -1077,20 +1150,20 @@ function animate(backgroundCanvas) {
 	// }
 
 	gemUI.draw(c);
-	c.fillStyle = 'purple';
+	c.fillStyle = "purple";
 	c.fillText(gemCount, 33, 46);
 	c.restore();
 
 	// Remove dead enemies after their death animation completes
-	oposums = oposums.filter(oposum => {
+	oposums = oposums.filter((oposum) => {
 		if (oposum.isDead) {
 			oposum.deathAnimationTime += timeStep;
 			return oposum.deathAnimationTime < oposum.deathAnimationDuration;
 		}
 		return true;
 	});
-	
-	eagles = eagles.filter(eagle => {
+
+	eagles = eagles.filter((eagle) => {
 		if (eagle.isDead) {
 			eagle.deathAnimationTime += timeStep;
 			return eagle.deathAnimationTime < eagle.deathAnimationDuration;
@@ -1098,25 +1171,30 @@ function animate(backgroundCanvas) {
 		return true;
 	});
 
+	// Check if game is over or player won, stop soundtrack
+	if ((window.isGameOver || window.isWinner) && soundtrack && !soundtrack.paused) {
+		soundtrack.pause();
+	}
+
 	requestAnimationFrame(() => animate(backgroundCanvas));
 }
 
 async function startRendering() {
 	try {
 		if (!canvas || !c) {
-			throw new Error('Canvas not initialized');
+			throw new Error("Canvas not initialized");
 		}
 		oceanBackgroundCanvas = await renderStaticLayers(oceanLayerData);
 		brambleBackgroundCanvas = await renderStaticLayers(brambleLayerData);
 		const backgroundCanvas = await renderStaticLayers(layersData);
-		
+
 		if (!backgroundCanvas) {
-			throw new Error('Failed to create the background canvas');
+			throw new Error("Failed to create the background canvas");
 		}
-		
+
 		animate(backgroundCanvas);
 	} catch (error) {
-		console.error('Error during rendering:', error);
+		console.error("Error during rendering:", error);
 	}
 }
 
