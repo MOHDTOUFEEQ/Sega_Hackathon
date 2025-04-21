@@ -22,7 +22,7 @@ import l_Trees from "../data/l_Trees.js";
 import Enemy from "../classes/Enemy.js";
 import BigMonster from "../classes/BigMonster.js";
 import { store } from "../../../store/store.js";
-import { collectGem, setMonsterKilled, setPlayerDead } from "../../../store/playerSlice.js";
+import { collectGem, setEndingTime, setHealth, setMonsterKilled, setPlayerDead } from "../../../store/playerSlice.js";
 import sound from "./sound.js";
 // Initialize variables
 let canvas;
@@ -833,7 +833,8 @@ function animate(backgroundCanvas) {
 					window.isGameOver = true;
 					sound.playerDeath.play();
 					
-					store.dispatch(setEndingTime(Date.now()));
+					store.dispatch(setEndingTime(Date.now()/1000));
+					store.dispatch(setHealth(0));
 					store.dispatch(setPlayerDead()); // Update Redux store directly
 					store.dispatch(collectGem(gemCount)); // Update Redux store directly
 					store.dispatch(setMonsterKilled(false)); // Update Redux store directly
@@ -1025,9 +1026,9 @@ function animate(backgroundCanvas) {
 						// Show winner screen and update game state
 						window.isWinner = true;
 						store.dispatch(collectGem(gemCount));
-						store.dispatch(setEndingTime(Date.now()));
+						store.dispatch(setEndingTime(Date.now()/1000));
 						store.dispatch(setMonsterKilled(true)); // Update Redux store directly
-						
+						store.dispatch(setHealth(player.health));
 						// Display the winner screen
 						setTimeout(() => {
 							const winnerScreen = document.getElementById("winnerScreen");

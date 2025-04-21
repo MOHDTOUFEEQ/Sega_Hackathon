@@ -3,7 +3,7 @@ import { init, startRendering } from './js/index.js';
 import '../../App.css';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setEndingTime } from '../../store/playerSlice';
+import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setEndingTime, setHealth } from '../../store/playerSlice';
 
 let gameInitialized = false;
 let gameLoop = null;
@@ -15,18 +15,25 @@ export default function Game() {
   const [isGameOver, setIsGameOver] = useState(false);
   const [gameTime, setGameTime] = useState(0);
   const timerRef = useRef(null);
-  const { score, gems, timeTaken, isDead, killedMonster, startTime, endingTime } = useAppSelector((state) => state.player);
+  const { score, gems, timeTaken, isDead, killedMonster, startTime, endingTime, health } = useAppSelector((state) => state.player);
   const [overallScore, setOverallScore] = useState(0);
   
   useEffect(() => {
     const calculateScore = () => {
-      if(killedMonster){
-        return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) + 25) + 50);
-      }
-      return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) - 25) - 50);
+		const timePenalty = endingTime - startTime;
+      const baseScore = health + gems * 5;
+      const elapsed = Math.floor(endingTime - startTime);
+      setGameTime(elapsed); 
+    
+      if (killedMonster) {
+        return 100 + Math.round(baseScore - timePenalty + 75);
+      } else {
+        return 100 + Math.round(baseScore - timePenalty - 75);
+	  }
+
     };
     setOverallScore(calculateScore());
-  }, [score, gems, endingTime, startTime, killedMonster]);
+  }, [score, gems, endingTime, startTime, killedMonster, health]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -35,19 +42,19 @@ export default function Game() {
 		gameInitialized = true;
 
 		// Start timer
-		timerRef.current = setInterval(() => {
-			setGameTime((prevTime) => prevTime + 1);
-		}, 1000);
+		
 
 		const waitForCanvas = () => {
 			window.gameCanvas = canvas;
 			window.isGameOver = false;
 
       try {
-        dispatch(setStartTime(Date.now()));
+        dispatch(setStartTime(Date.now() / 1000));
         dispatch(setMonsterKilled(false));
+		dispatch(setHealth(100));
         dispatch(collectGem(0));
         dispatch(setEndingTime(0));
+        dispatch(setPlayerDead(false));
         init();
         startRendering();
       } catch (error) {
@@ -70,79 +77,20 @@ export default function Game() {
 	}, []);
 
 	const handleResultsClick = () => {
-		setIsGameOver(true);
-		window.isGameOver = true;
-		if (gameLoop) {
-			cancelAnimationFrame(gameLoop);
-		}
-		if (timerRef.current) {
-			clearInterval(timerRef.current);
-		}
-
-		// Update Redux store with game stats
-		dispatch(setPlayerDead()); // Since we're in game over screen
-		dispatch(setTimeTaken(gameTime));
-
-		// Update score if available
-		if (window.gameScore) {
-			dispatch(incrementScore(window.gameScore));
-		}
-
-		// Update gems collected
-		if (window.gemsCollected) {
-			// If gemsCollected is a number, add that many gems
-			for (let i = 0; i < window.gemsCollected; i++) {
-				dispatch(collectGem());
-			}
-		}
-
-		// Update monster status if available
-		if (window.monsterKilled) {
-			dispatch(setMonsterKilled());
-		}
-
+		
 		// Navigate to results screen
 		navigate("/results");
 	};
 
 	const handleWinnerResultsClick = () => {
-		setIsWinner(false);
-		window.isGameOver = true;
-		if (gameLoop) {
-			cancelAnimationFrame(gameLoop);
-		}
-		if (timerRef.current) {
-			clearInterval(timerRef.current);
-		}
-
-		// Update Redux store with game stats
-		dispatch(setTimeTaken(gameTime));
-
-		// Update score if available
-		if (window.gameScore) {
-			dispatch(incrementScore(window.gameScore));
-		}
-
-		// Update gems collected
-		if (window.gemsCollected) {
-			// If gemsCollected is a number, add that many gems
-			for (let i = 0; i < window.gemsCollected; i++) {
-				dispatch(collectGem());
-			}
-		}
-
-		// Update monster status if available
-		if (window.monsterKilled) {
-			dispatch(setMonsterKilled());
-		}
-
+		
 		// Navigate to results screen
 		navigate("/results");
 	};
 
 	return (
 		<div className="game-wrapper">
-			<div id="healthContainer" className={isGameOver || isWinner ? "backdrop-blur-[2px]" : ""}>
+			<div id="healthContainer" className={isGameOver  ? "backdrop-blur-[2px]" : ""}>
 				<span id="healthText">Health:</span>
 				<div id="healthBarBackground">
 					<div id="healthBarFill"></div>
@@ -152,8 +100,8 @@ export default function Game() {
 			<canvas
 				style={{
 					imageRendering: "pixelated",
-					filter: isGameOver || isWinner ? "blur(2px)" : "none",
-					pointerEvents: isGameOver || isWinner ? "none" : "auto",
+					filter: isGameOver  ? "blur(2px)" : "none",
+					pointerEvents: isGameOver  ? "none" : "auto",
 				}}
 				ref={canvasRef}
 			></canvas>
@@ -209,8 +157,8 @@ export default function Game() {
 			</div>
 
 			{/* Winner Screen */}
-			<div id="winnerScreen" className={`${isWinner ? "flex" : "hidden"} fixed inset-0 flex flex-col items-center justify-center z-50`}>
-				{/* Fullscreen Background */}
+			<div id="winnerScreen" className={`${isGameOver ? "flex" : "hidden"} fixed inset-0 flex flex-col items-center justify-center z-50`}>
+				{/* Fullscreen Background */}	
 				<div className="absolute inset-0 bg-black opacity-80 z-0"></div>
 
 				<div className="winner-content relative p-10 rounded-3xl max-w-lg w-full text-center backdrop-blur-[10px] z-10">
@@ -231,7 +179,7 @@ export default function Game() {
 							<div className="grid grid-cols-2 gap-8">
 								<div className="text-left">
 									<p className="text-yellow-300 text-sm uppercase tracking-widest font-bold">SCORE</p>
-									<p className="text-6xl font-black text-yellow-400 mt-2">1500</p>
+									<p className="text-6xl font-black text-yellow-400 mt-2">{overallScore}</p>
 								</div>
 								<div className="text-left">
 									<p className="text-yellow-300 text-sm uppercase tracking-widest font-bold">TIME</p>

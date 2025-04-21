@@ -7,12 +7,14 @@ interface PlayerState {
   killedMonster: boolean;
   timeTaken: number;
   startTime: number;
-  endingTime: number;
+  endingTime: number; 
+  health: number;
 }
 
 const initialState: PlayerState = {
   score: 0,
   gems: 0,
+  health: 100,
   isDead: false,
   killedMonster: false,
   timeTaken: 0,
@@ -25,13 +27,16 @@ const playerSlice = createSlice({
   initialState,
   reducers: {
     incrementScore: (state, action: PayloadAction<number>) => {
-      state.score += action.payload;
+      state.score = action.payload;
     },
     collectGem: (state, action: PayloadAction<number>) => {
       state.gems = action.payload;
     },
     setPlayerDead: (state) => {
       state.isDead = true;
+    },  
+    setHealth: (state, action: PayloadAction<number>) => {
+      state.health = action.payload;
     },
     setMonsterKilled: (state, action: PayloadAction<boolean>) => {
       state.killedMonster = action.payload;
@@ -53,6 +58,7 @@ export const {
   incrementScore,
   collectGem,
   setPlayerDead,
+  setHealth,
   setMonsterKilled,
   setTimeTaken,
   setStartTime,

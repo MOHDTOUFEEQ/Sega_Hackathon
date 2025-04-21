@@ -12,51 +12,26 @@ const Results = () => {
   const [displayTime, setDisplayTime] = useState(0);
   const [overallScore, setOverallScore] = useState(0);
   // Get state from Redux store
-  const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime } = useAppSelector((state) => state.player);
+  const {  score, gems, timeTaken, isDead, killedMonster, endingTime, startTime, health } = useAppSelector((state) => state.player);
   useEffect(() => {
     const calculateScore = () => {
-      if(killedMonster){
-        return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) + 25) + 50);
+      const timePenalty = endingTime - startTime;
+      const baseScore = health + gems * 5;
+      const elapsed = Math.floor(endingTime - startTime);
+      setDisplayTime(elapsed); 
+    
+      if (killedMonster) {
+        return 100 + Math.round(baseScore - timePenalty + 75);
+      } else {
+        return 100 + Math.round(baseScore - timePenalty - 75);
       }
-      return Math.round((score + gems * 5 - ((endingTime - startTime)/1000) - 25) - 50);
     };
+    
 
     setOverallScore(calculateScore());
-  }, [score, gems, endingTime, startTime, killedMonster]);
+  }, [score, gems, endingTime, startTime, killedMonster, health]);
 
-  useEffect(() => {
-    setIsVisible(true);
-    
-    // Animate score counting
-    const scoreInterval = setInterval(() => {
-      setDisplayScore(prev => {
-        const step = Math.ceil(score / 20);
-        return prev + step > score ? score : prev + step;
-      });
-    }, 50);
-
-    // Animate gems counting
-    const gemsInterval = setInterval(() => {
-      setDisplayGems(prev => {
-        const step = Math.ceil(gems / 20);
-        return prev + step > gems ? gems : prev + step;
-      });
-    }, 50);
-
-    // Animate time counting
-    const timeInterval = setInterval(() => {
-      setDisplayTime(prev => {
-        const step = Math.ceil(timeTaken / 20);
-        return prev + step > timeTaken ? timeTaken : prev + step;
-      });
-    }, 50);
-
-    return () => {
-      clearInterval(scoreInterval);
-      clearInterval(gemsInterval);
-      clearInterval(timeInterval);
-    };
-  }, [score, gems, timeTaken]);
+ 
 
   return (
     <motion.div 
