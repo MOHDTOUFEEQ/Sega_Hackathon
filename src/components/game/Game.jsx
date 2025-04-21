@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { init, startRendering } from "./js/index.js";
+import { Howl } from "howler";
+import { init, startRendering, resetGameTiming } from "./js/index.js";
 import "../../App.css";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch } from "../../store/hooks";
@@ -16,10 +17,31 @@ export default function Game() {
 	const [isWinner, setIsWinner] = useState(false);
 	const [gameTime, setGameTime] = useState(0);
 	const timerRef = useRef(null);
+	const menuMusicRef = useRef(null);
+
+	useEffect(() => {
+		// Create Howl instance for menu music
+		menuMusicRef.current = new Howl({
+			src: ["/sounds/Menu_Music.wav"],
+			loop: true,
+			volume: 0.5,
+			autoplay: false,
+		});
+
+		// Cleanup function
+		return () => {
+			if (menuMusicRef.current) {
+				menuMusicRef.current.stop();
+			}
+		};
+	}, []);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
 		console.log("Mounting Game component...");
+
+		window.gameCanvas = canvas;
+		window.isGameOver = false;
 
 		if (gameInitialized) return;
 		gameInitialized = true;
@@ -29,20 +51,14 @@ export default function Game() {
 			setGameTime((prevTime) => prevTime + 1);
 		}, 1000);
 
-		const waitForCanvas = () => {
-			window.gameCanvas = canvas;
-			window.isGameOver = false;
-
-			try {
-				init();
-				startRendering();
-				console.log("✅ Game initialized!");
-			} catch (error) {
-				console.error("❌ Error during game initialization:", error);
-			}
-		};
-
-		waitForCanvas();
+		try {
+			resetGameTiming();
+			init();
+			startRendering();
+			console.log("✅ Game initialized!");
+		} catch (error) {
+			console.error("❌ Error during game initialization:", error);
+		}
 
 		// Cleanup function
 		return () => {
@@ -67,7 +83,7 @@ export default function Game() {
 		}
 
 		// Update Redux store with game stats
-		dispatch(setPlayerDead()); // Since we're in game over screen
+		dispatch(setPlayerDead());
 		dispatch(setTimeTaken(gameTime));
 
 		// Update score if available
