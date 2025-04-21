@@ -1,66 +1,46 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { init, startRendering } from './js/index.js';
-import '../../App.css';
-import { useNavigate } from 'react-router-dom';
-import { useAppDispatch, useAppSelector } from '../../store/hooks';
-import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setEndingTime, setHealth } from '../../store/playerSlice';
+import React, { useEffect, useRef, useState } from "react";
+import { init, startRendering } from "./js/index.js";
+import "../../App.css";
+import { useNavigate } from "react-router-dom";
+import { useAppDispatch } from "../../store/hooks";
+import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled } from "../../store/playerSlice";
 
 let gameInitialized = false;
 let gameLoop = null;
 
 export default function Game() {
-  const canvasRef = useRef(null);
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-  const [isGameOver, setIsGameOver] = useState(false);
-  const [gameTime, setGameTime] = useState(0);
-  const timerRef = useRef(null);
-  const { score, gems, timeTaken, isDead, killedMonster, startTime, endingTime, health } = useAppSelector((state) => state.player);
-  const [overallScore, setOverallScore] = useState(0);
-  
-  useEffect(() => {
-    const calculateScore = () => {
-		const timePenalty = endingTime - startTime;
-      const baseScore = health + gems * 5;
-      const elapsed = Math.floor(endingTime - startTime);
-      setGameTime(elapsed); 
-    
-      if (killedMonster) {
-        return 100 + Math.round(baseScore - timePenalty + 75);
-      } else {
-        return 100 + Math.round(baseScore - timePenalty - 75);
-	  }
+	const canvasRef = useRef(null);
+	const navigate = useNavigate();
+	const dispatch = useAppDispatch();
+	const [isGameOver, setIsGameOver] = useState(false);
+	const [isWinner, setIsWinner] = useState(false);
+	const [gameTime, setGameTime] = useState(0);
+	const timerRef = useRef(null);
 
-    };
-    setOverallScore(calculateScore());
-  }, [score, gems, endingTime, startTime, killedMonster, health]);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		console.log("Mounting Game component...");
 
 		if (gameInitialized) return;
 		gameInitialized = true;
 
 		// Start timer
-		
+		timerRef.current = setInterval(() => {
+			setGameTime((prevTime) => prevTime + 1);
+		}, 1000);
 
 		const waitForCanvas = () => {
 			window.gameCanvas = canvas;
 			window.isGameOver = false;
 
-      try {
-        dispatch(setStartTime(Date.now() / 1000));
-        dispatch(setMonsterKilled(false));
-		dispatch(setHealth(100));
-        dispatch(collectGem(0));
-        dispatch(setEndingTime(0));
-        dispatch(setPlayerDead(false));
-        init();
-        startRendering();
-      } catch (error) {
-        console.error("❌ Error during game initialization:", error);
-      }
-    };
+			try {
+				init();
+				startRendering();
+				console.log("✅ Game initialized!");
+			} catch (error) {
+				console.error("❌ Error during game initialization:", error);
+			}
+		};
 
 		waitForCanvas();
 
@@ -77,20 +57,49 @@ export default function Game() {
 	}, []);
 
 	const handleResultsClick = () => {
-		
+		setIsGameOver(true);
+		window.isGameOver = true;
+		if (gameLoop) {
+			cancelAnimationFrame(gameLoop);
+		}
+		if (timerRef.current) {
+			clearInterval(timerRef.current);
+		}
+
+		// Update Redux store with game stats
+		dispatch(setPlayerDead()); // Since we're in game over screen
+		dispatch(setTimeTaken(gameTime));
+
+		// Update score if available
+		if (window.gameScore) {
+			dispatch(incrementScore(window.gameScore));
+		}
+
+		// Update gems collected
+		if (window.gemsCollected) {
+			// If gemsCollected is a number, add that many gems
+			for (let i = 0; i < window.gemsCollected; i++) {
+				dispatch(collectGem());
+			}
+		}
+
+		// Update monster status if available
+		if (window.monsterKilled) {
+			dispatch(setMonsterKilled());
+		}
+
 		// Navigate to results screen
 		navigate("/results");
 	};
 
 	const handleWinnerResultsClick = () => {
-		
 		// Navigate to results screen
 		navigate("/results");
 	};
 
 	return (
 		<div className="game-wrapper">
-			<div id="healthContainer" className={isGameOver  ? "backdrop-blur-[2px]" : ""}>
+			<div id="healthContainer" className={isGameOver ? "backdrop-blur-[2px]" : ""}>
 				<span id="healthText">Health:</span>
 				<div id="healthBarBackground">
 					<div id="healthBarFill"></div>
@@ -100,8 +109,8 @@ export default function Game() {
 			<canvas
 				style={{
 					imageRendering: "pixelated",
-					filter: isGameOver  ? "blur(2px)" : "none",
-					pointerEvents: isGameOver  ? "none" : "auto",
+					filter: isGameOver ? "blur(2px)" : "none",
+					pointerEvents: isGameOver ? "none" : "auto",
 				}}
 				ref={canvasRef}
 			></canvas>
@@ -130,12 +139,12 @@ export default function Game() {
                         <p className="text-red-400 text-sm uppercase tracking-widest font-bold">RANK</p>
                         <p className="text-6xl font-black text-red-500 mt-2">#2</p>
                     </div> */}
-                    <div className="text-left">
-                        <p className="text-red-400 text-sm uppercase tracking-widest font-bold">SCORE</p>
-                        <p className="text-6xl font-black text-red-500 mt-2">{overallScore}</p>
-                    </div>
-                </div>
-            </div>
+								<div className="text-left">
+									<p className="text-red-400 text-sm uppercase tracking-widest font-bold">SCORE</p>
+									<p className="text-6xl font-black text-red-500 mt-2">{overallScore}</p>
+								</div>
+							</div>
+						</div>
 
 						{/* Contra-Style Button */}
 						<button
@@ -158,7 +167,7 @@ export default function Game() {
 
 			{/* Winner Screen */}
 			<div id="winnerScreen" className={`${isGameOver ? "flex" : "hidden"} fixed inset-0 flex flex-col items-center justify-center z-50`}>
-				{/* Fullscreen Background */}	
+				{/* Fullscreen Background */}
 				<div className="absolute inset-0 bg-black opacity-80 z-0"></div>
 
 				<div className="winner-content relative p-10 rounded-3xl max-w-lg w-full text-center backdrop-blur-[10px] z-10">

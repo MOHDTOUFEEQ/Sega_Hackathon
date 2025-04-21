@@ -4,7 +4,7 @@ const sound = {
 	gun: new Howl({
 		src: ["/sounds/Laser_Gun.wav"],
 		loop: false,
-		volume: 0.4,
+		volume: 0.5,
 	}),
 	jump: new Howl({
 		src: ["/sounds/Jump.wav"],
@@ -14,7 +14,7 @@ const sound = {
 	bump: new Howl({
 		src: ["/sounds/Bump.wav"],
 		loop: false,
-		volume: 0.4,
+		volume: 0.5,
 	}),
 	hurt: new Howl({
 		src: ["/sounds/Hurt.wav"],
@@ -27,6 +27,7 @@ const sound = {
 	bumpSide: new Howl({
 		src: ["/sounds/Bump_Side.wav"],
 		loop: false,
+		volume: 1.2,
 	}),
 	hitEnemy: new Howl({
 		src: ["/sounds/Hit_Enemy.wav"],
@@ -51,7 +52,17 @@ const sound = {
 	soundtrack: new Howl({
 		src: ["/sounds/Soundtrack.mp3"],
 		loop: true,
-		volume: 0.6,
+		volume: 0.4,
+	}),
+	boss: new Howl({
+		src: ["/sounds/Boss.mp3"],
+		loop: true,
+		volume: 0.5,
+	}),
+	alarm: new Howl({
+		src: ["/sounds/Alarm.wav"],
+		loop: false,
+		volume: 1.4,
 	}),
 };
 

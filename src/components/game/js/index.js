@@ -31,6 +31,16 @@ const dpr = 2;
 let isFiring = false;
 let soundtrack; // Add this variable to track the soundtrack
 
+// Add this variable to track if boss music is playing
+let isBossMusicPlaying = false;
+let bossDetectionRadius = 500; // Distance to detect the monster
+
+// Add a movement disabled flag
+let isMovementDisabled = false;
+
+// Add this variable to track if alarm has been played
+let hasAlarmPlayed = false;
+
 // Function to initialize canvas
 function initializeCanvas() {
 	try {
@@ -329,6 +339,91 @@ function checkSpecialTileCollisions() {
 	}
 }
 
+function checkBossProximity() {
+	if (!bigMonster || window.isGameOver || window.isWinner) return;
+
+	// Calculate distance between player and monster
+	const dx = player.x - bigMonster.x;
+	const dy = player.y - bigMonster.y;
+	const distance = Math.sqrt(dx * dx + dy * dy);
+
+	// Check if player is near the monster
+	if (distance < bossDetectionRadius && !isBossMusicPlaying) {
+		sound.alarm.play();
+
+		// Switch to boss music
+		if (soundtrack) {
+			soundtrack.pause();
+		}
+		sound.boss.loop = true;
+		// Add a 5-second delay before playing boss music
+		setTimeout(() => {
+			sound.boss.play();
+		}, 3000);
+		soundtrack = sound.boss;
+		isBossMusicPlaying = true;
+
+		// Add red overlay effect
+		addRedOverlay();
+
+		// Disable movement for a cutscene-like effect when approaching the boss
+		disableMovementForDuration(5000);
+	}
+}
+
+// Add this new function to create and animate the red overlay
+function addRedOverlay() {
+	// Create overlay if it doesn't exist
+	let overlay = document.getElementById("bossOverlay");
+	if (!overlay) {
+		overlay = document.createElement("div");
+		overlay.id = "bossOverlay";
+		overlay.style.position = "absolute";
+		overlay.style.top = "0";
+		overlay.style.left = "0";
+		overlay.style.width = "100%";
+		overlay.style.height = "100%";
+		overlay.style.backgroundColor = "rgba(255, 0, 0, 0)";
+		overlay.style.pointerEvents = "none"; // Allow clicking through the overlay
+		overlay.style.zIndex = "1000";
+		overlay.style.transition = "background-color 0.5s ease-in-out";
+
+		// Add it to the canvas container
+		const canvasContainer = canvas.parentElement;
+		canvasContainer.appendChild(overlay);
+	}
+
+	// Fade in
+	setTimeout(() => {
+		overlay.style.backgroundColor = "rgba(255, 0, 0, 0.3)";
+	}, 100);
+
+	// Pulse effect
+	let pulseCount = 0;
+	const pulseInterval = setInterval(() => {
+		pulseCount++;
+		if (pulseCount % 2 === 0) {
+			overlay.style.backgroundColor = "rgba(255, 0, 0, 0.4)";
+		} else {
+			overlay.style.backgroundColor = "rgba(255, 0, 0, 0.2)";
+		}
+
+		if (pulseCount >= 5) {
+			clearInterval(pulseInterval);
+			// Fade out
+			// setTimeout(() => {
+			// 	overlay.style.backgroundColor = "rgba(255, 0, 0, 0)";
+			// 	// Remove the overlay after the fade-out
+			// 	setTimeout(() => {
+			// 		if (overlay.parentNode) {
+			// 			overlay.parentNode.removeChild(overlay);
+			// 		}
+			// 	}, 1000);
+			// }, 3500);
+		}
+	}, 500);
+}
+
 function init() {
 	if (!initializeCanvas()) {
 		console.error("Failed to initialize canvas");
@@ -338,6 +433,7 @@ function init() {
 	// Reset game state variables
 	window.isGameOver = false;
 	window.isWinner = false;
+	hasAlarmPlayed = false; // Reset the alarm flag when game initializes
 
 	// Start playing the soundtrack
 	if (sound.soundtrack) {
@@ -551,6 +647,19 @@ function init() {
 	});
 
 	initSpecialTiles(); // Initialize special tiles detection
+
+	// Reset boss music state
+	isBossMusicPlaying = false;
+}
+
+// Create a function to disable movement
+function disableMovementForDuration(duration = 3000) {
+	isMovementDisabled = true;
+
+	// Re-enable movement after the duration
+	setTimeout(() => {
+		isMovementDisabled = false;
+	}, duration);
 }
 
 function animate(backgroundCanvas) {
@@ -572,8 +681,23 @@ function animate(backgroundCanvas) {
 	while (accumulatedTime >= timeStep) {
 		// Skip all updates if game is over or player won
 		if (!window.isGameOver && !window.isWinner) {
-			// Update player position
-			player.handleInput(keys);
+			// Update player position - only handle input if movement isn't disabled
+			if (!isMovementDisabled) {
+				player.handleInput(keys);
+			} else {
+				// Create empty keys object to pass to handleInput when movement is disabled
+				const emptyKeys = {
+					w: { pressed: false },
+					a: { pressed: false },
+					d: { pressed: false },
+					ArrowLeft: { pressed: false },
+					ArrowRight: { pressed: false },
+					ArrowUp: { pressed: false },
+					Space: { pressed: false },
+					mouseLeft: { pressed: false },
+				};
+				player.handleInput(emptyKeys);
+			}
 			player.update(timeStep, collisionBlocks);
 			if (isFiring) {
 				player.fire();
@@ -997,7 +1121,7 @@ function animate(backgroundCanvas) {
 			for (let i = player.bullets.length - 1; i >= 0; i--) {
 				const bullet = player.bullets[i];
 				if (bullet.x < bigMonster.x + bigMonster.width && bullet.x + bullet.width > bigMonster.x && bullet.y < bigMonster.y + bigMonster.height && bullet.y + bullet.height > bigMonster.y) {
-					bigMonster.health -= 5; // Reduce monster health by 5
+					bigMonster.health -= 2; // Reduce monster health by 5
 					player.bullets.splice(i, 1); // Remove the bullet
 
 					// Check if monster is dead
@@ -1056,7 +1180,8 @@ function animate(backgroundCanvas) {
 				for (let i = bigMonster.bullets.length - 1; i >= 0; i--) {
 					const bullet = bigMonster.bullets[i];
 					if (bullet.x < player.x + player.width && bullet.x + bullet.width > player.x && bullet.y < player.y + player.height && bullet.y + bullet.height > player.y) {
-						player.health -= 5; // Reduce player health by 5
+						player.health -= 10; // Reduce player health by 5
+						sound.hurt.play();
 						bigMonster.bullets.splice(i, 1); // Remove the bullet
 						player.setIsInvincible(); // Make player temporarily invincible
 						break;
@@ -1066,6 +1191,9 @@ function animate(backgroundCanvas) {
 
 			// Check for collision with special tiles
 			checkSpecialTileCollisions();
+
+			// Check proximity to boss for music change
+			checkBossProximity();
 		}
 
 		accumulatedTime -= timeStep;
