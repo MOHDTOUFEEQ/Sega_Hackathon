@@ -13,7 +13,6 @@ export default function Game() {
 	const navigate = useNavigate();
 	const dispatch = useAppDispatch();
 	const [isGameOver, setIsGameOver] = useState(false);
-	const [isWinner, setIsWinner] = useState(false);
 	const [gameTime, setGameTime] = useState(0);
 	const timerRef = useRef(null);
 
@@ -141,7 +140,7 @@ export default function Game() {
                     </div> */}
 								<div className="text-left">
 									<p className="text-red-400 text-sm uppercase tracking-widest font-bold">SCORE</p>
-									<p className="text-6xl font-black text-red-500 mt-2">{overallScore}</p>
+									<p className="text-6xl font-black text-red-500 mt-2">11</p>
 								</div>
 							</div>
 						</div>
@@ -188,7 +187,7 @@ export default function Game() {
 							<div className="grid grid-cols-2 gap-8">
 								<div className="text-left">
 									<p className="text-yellow-300 text-sm uppercase tracking-widest font-bold">SCORE</p>
-									<p className="text-6xl font-black text-yellow-400 mt-2">{overallScore}</p>
+									<p className="text-6xl font-black text-yellow-400 mt-2">11</p>
 								</div>
 								<div className="text-left">
 									<p className="text-yellow-300 text-sm uppercase tracking-widest font-bold">TIME</p>
