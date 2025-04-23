@@ -2,8 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { init, startRendering } from "./js/index.js";
 import "../../App.css";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch } from "../../store/hooks";
-import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled } from "../../store/playerSlice";
+import { useAppDispatch, useAppSelector } from "../../store/hooks";
+import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setHealth } from "../../store/playerSlice";
 import EndGameStats from "../EndGameStats";
 let gameInitialized = false;
 let gameLoop = null;
@@ -16,23 +16,49 @@ export default function Game() {
 	const [gameTime, setGameTime] = useState(0);
 	const timerRef = useRef(null);
 
+	const [overallScore, setOverallScore] = useState(0);
+	
+	const { score, gems, timeTaken, isDead, killedMonster, startTime, endingTime, health } = useAppSelector((state) => state.player);
+
+	useEffect(() => {
+		const calculateScore = () => {
+		const timePenalty = endingTime - startTime;
+		const baseScore = health + gems * 5;
+		const elapsed = Math.floor(endingTime - startTime);
+		setGameTime(elapsed); 
+		
+		if (killedMonster) {
+			return 100 + Math.round(baseScore - timePenalty + 75);
+		} else {
+			return 100 + Math.round(baseScore - timePenalty - 75);
+		}
+
+		};
+		setOverallScore(calculateScore());
+	}, [health]);
+
 	useEffect(() => {
 		const canvas = canvasRef.current;
-		console.log("Mounting Game component...");
 
 		if (gameInitialized) return;
 		gameInitialized = true;
 
+	
+		
 		// Start timer
-		timerRef.current = setInterval(() => {
-			setGameTime((prevTime) => prevTime + 1);
-		}, 1000);
-
+		
 		const waitForCanvas = () => {
 			window.gameCanvas = canvas;
 			window.isGameOver = false;
 
 			try {
+				dispatch(setStartTime(Date.now() / 1000));
+				dispatch(setHealth(100));
+				dispatch(collectGem(0));
+				dispatch(setMonsterKilled(false));
+				dispatch(setPlayerDead(false));
+				dispatch(setTimeTaken(0));
+				dispatch(incrementScore(0));
 				init();
 				startRendering();
 				console.log("✅ Game initialized!");
@@ -56,36 +82,6 @@ export default function Game() {
 	}, []);
 
 	const handleResultsClick = () => {
-		setIsGameOver(true);
-		window.isGameOver = true;
-		if (gameLoop) {
-			cancelAnimationFrame(gameLoop);
-		}
-		if (timerRef.current) {
-			clearInterval(timerRef.current);
-		}
-
-		// Update Redux store with game stats
-		dispatch(setPlayerDead()); // Since we're in game over screen
-		dispatch(setTimeTaken(gameTime));
-
-		// Update score if available
-		if (window.gameScore) {
-			dispatch(incrementScore(window.gameScore));
-		}
-
-		// Update gems collected
-		if (window.gemsCollected) {
-			// If gemsCollected is a number, add that many gems
-			for (let i = 0; i < window.gemsCollected; i++) {
-				dispatch(collectGem());
-			}
-		}
-
-		// Update monster status if available
-		if (window.monsterKilled) {
-			dispatch(setMonsterKilled());
-		}
 
 		// Navigate to results screen
 		navigate("/results");
@@ -136,7 +132,7 @@ export default function Game() {
 							<div className="grid grid-cols-2 gap-8">
 								<div className="text-left">
 									<p className="text-red-400 text-sm uppercase tracking-widest font-bold">SCORE</p>
-									<p className="text-6xl font-black text-red-500 mt-2">11</p>
+									<p className="text-6xl font-black text-red-500 mt-2">{overallScore}</p>
 								</div>
 							</div>
 						</div>

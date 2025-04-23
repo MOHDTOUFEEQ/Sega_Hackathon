@@ -129,7 +129,7 @@ class BigMonster {
   }
 
   die() {
-    store.dispatch(setMonsterKilled()); // Update Redux store directly
+    store.dispatch(setMonsterKilled(true));
     this.isDead = true;
     this.bullets = []; // Clear all bullets
   }

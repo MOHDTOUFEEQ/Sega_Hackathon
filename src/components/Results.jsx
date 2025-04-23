@@ -15,6 +15,7 @@ const Results = () => {
 	// Get state from Redux store
 	const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime, health } = useAppSelector((state) => state.player);
 	useEffect(() => {
+		
 		const calculateScore = () => {
 			const timePenalty = endingTime - startTime;
 			const baseScore = health + gems * 5;
@@ -29,7 +30,7 @@ const Results = () => {
 		};
 
 		setOverallScore(calculateScore());
-	}, [score, gems, endingTime, startTime, killedMonster, health]);
+	}, [health]);
 
 	return (
 		<motion.div className="results-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>

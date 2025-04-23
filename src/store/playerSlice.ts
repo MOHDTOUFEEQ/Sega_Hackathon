@@ -9,6 +9,7 @@ interface PlayerState {
   startTime: number;
   endingTime: number; 
   health: number;
+  username: string;
 }
 
 const initialState: PlayerState = {
@@ -16,6 +17,7 @@ const initialState: PlayerState = {
   gems: 0,
   health: 100,
   isDead: false,
+  username: "Kris",
   killedMonster: false,
   timeTaken: 0,
   startTime: 0,
@@ -28,6 +30,9 @@ const playerSlice = createSlice({
   reducers: {
     incrementScore: (state, action: PayloadAction<number>) => {
       state.score = action.payload;
+    },
+    setUsername: (state, action: PayloadAction<string>) => {
+      state.username = action.payload;
     },
     collectGem: (state, action: PayloadAction<number>) => {
       state.gems = action.payload;
