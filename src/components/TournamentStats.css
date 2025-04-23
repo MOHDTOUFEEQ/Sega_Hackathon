@@ -1,0 +1,43 @@
+@font-face {
+	font-family: "Minecraft";
+	src: url("/fonts/Minecraft.ttf") format("truetype");
+	font-weight: normal;
+	font-style: normal;
+}
+
+.leaderboard-container {
+	width: 100%;
+	max-width: 500px;
+	margin: 0 auto;
+	background: rgba(0, 0, 0, 0.7);
+	border-radius: 10px;
+	padding: 20px;
+	font-family: "Minecraft", sans-serif;
+	letter-spacing: 4px;
+}
+
+.leaderboard-item {
+	display: flex;
+	justify-content: space-between;
+	margin: 20px 0;
+	font-size: 1.2rem;
+	color: white;
+	position: relative;
+	white-space: nowrap;
+}
+
+.player-name {
+	font-weight: bold;
+}
+
+.score-dots {
+	flex-grow: 1;
+	overflow: hidden;
+	margin: 0 8px;
+	color: rgba(255, 255, 255, 0.4);
+}
+
+.player-score {
+	font-weight: bold;
+	color: #ffd700;
+}

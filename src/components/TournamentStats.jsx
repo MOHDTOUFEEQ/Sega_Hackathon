@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import "./Results.css";
+import "./TournamentStats.css";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../store/hooks";
 import statsBg from "/stats_bg.png";
 
-const Results = () => {
+const TournamentStats = () => {
 	const navigate = useNavigate();
 	const [isVisible, setIsVisible] = useState(false);
 	const [displayScore, setDisplayScore] = useState(0);
@@ -33,6 +33,23 @@ const Results = () => {
 
 	return (
 		<motion.div className="results-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
+			{/* Red overlay */}
+			<motion.div
+				className="red-overlay"
+				style={{
+					position: "absolute",
+					top: 0,
+					left: 0,
+					width: "100%",
+					height: "100%",
+					backgroundColor: "rgba(36, 109, 0, 0.2)",
+					zIndex: 1,
+				}}
+				initial={{ opacity: 0 }}
+				animate={{ opacity: 1 }}
+				transition={{ duration: 1.5 }}
+			/>
+
 			<motion.div
 				className="background-overlay"
 				style={{
@@ -48,41 +65,17 @@ const Results = () => {
 
 			<motion.div className="results-content" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
 				<motion.h1 className="game-finished-text" initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.4 }}>
-					{!killedMonster ? "Game Over" : "Mission Complete"}
+					<h3>Tournament Score</h3>
 				</motion.h1>
 
-				<div className="stats-grid">
-					<motion.div className="stat-card" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.6 }}>
-						<h3>Final Score</h3>
-						<div className="progress-bar">
-							<motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1, delay: 0.8 }} />
-						</div>
-						<p className="stat-value">{overallScore}</p>
-					</motion.div>
-
-					<motion.div className="stat-card" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.7 }}>
-						<h3>Gems Collected</h3>
-						<div className="progress-bar">
-							<motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1, delay: 0.9 }} />
-						</div>
-						<p className="stat-value">{gems}</p>
-					</motion.div>
-
-					<motion.div className="stat-card" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.8 }}>
-						<h3>Monster Status</h3>
-						<div className="progress-bar">
-							<motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1, delay: 1 }} />
-						</div>
-						<p className="stat-value">{killedMonster ? "Defeated" : "Alive"}</p>
-					</motion.div>
-
-					<motion.div className="stat-card" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.9 }}>
-						<h3>Time Taken</h3>
-						<div className="progress-bar">
-							<motion.div className="progress-fill" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 1, delay: 1.1 }} />
-						</div>
-						<p className="stat-value">{displayTime}s</p>
-					</motion.div>
+				<div className="leaderboard-container">
+					{Array.from({ length: 10 }, (_, i) => (
+						<motion.div key={i} className="leaderboard-item" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.6 + i * 0.1 }}>
+							<span className="player-name">Player{i + 1}</span>
+							<span className="score-dots">................................</span>
+							<span className="player-score">{Math.floor(150 + Math.random() * 200 - i * 15)}pts</span>
+						</motion.div>
+					))}
 				</div>
 
 				<div className="action-buttons">
@@ -95,4 +88,4 @@ const Results = () => {
 	);
 };
 
-export default Results;
+export default TournamentStats;

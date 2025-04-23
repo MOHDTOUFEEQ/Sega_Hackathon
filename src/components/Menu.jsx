@@ -1,9 +1,12 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Howl } from "howler";
+import { GiCrosshair } from "react-icons/gi";
 
 const Menu = ({ onStartGame }) => {
 	const [isAnimating, setIsAnimating] = useState(true);
+	const [selectedOption, setSelectedOption] = useState("fight");
 	const menuMusicRef = useRef(null);
+	const [isTournament, setIsTournament] = useState(false);
 
 	// Create a Howl instance for the sound
 	const startSound = new Howl({
@@ -25,11 +28,28 @@ const Menu = ({ onStartGame }) => {
 			autoplay: true,
 		});
 
+		// Add keyboard event listener for arrow keys
+		const handleKeyDown = (e) => {
+			if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+				// Play selection sound
+				hoverSound.play();
+
+				// Toggle between fight and tournament
+				setSelectedOption((prev) => (prev === "fight" ? "tournament" : "fight"));
+			} else if (e.key === "Enter") {
+				// Start the game with the selected mode when Enter is pressed
+				handleStartGame(selectedOption);
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+
 		// Clean up when component unmounts
 		return () => {
 			if (menuMusicRef.current) {
 				menuMusicRef.current.stop();
 			}
+			window.removeEventListener("keydown", handleKeyDown);
 		};
 	}, []);
 
@@ -63,13 +83,12 @@ const Menu = ({ onStartGame }) => {
 		cursor: "pointer",
 		marginBottom: "20px",
 		boxShadow: "6px 6px 0px #000000",
-		fontFamily: "'Press Start 2P', 'Courier New', monospace",
+		fontFamily: "'Minecraft', 'Courier New', monospace",
 		textTransform: "uppercase",
 		letterSpacing: "2px",
 		imageRendering: "pixelated",
 		transition: "all 0.1s",
-		marginLeft: "10%",
-		animation: isAnimating ? "pulse 1.5s infinite alternate" : "none",
+		// animation: isAnimating ? "pulse 1.5s infinite alternate" : "none",
 	};
 
 	const instructionsStyles = {
@@ -103,30 +122,80 @@ const Menu = ({ onStartGame }) => {
 		setIsAnimating(true);
 	};
 
-	const handleStartGame = () => {
+	// Style for the spinning selector icons
+	const selectorStyles = {
+		fontSize: "28px",
+		color: "#f8f878",
+		margin: "0 25px",
+		animation: "spin 2s infinite linear",
+		display: "inline-block",
+	};
+
+	// Add a CSS keyframe animation for the spinning effect
+	useEffect(() => {
+		const style = document.createElement("style");
+		style.innerHTML = `
+			@keyframes spin {
+				from { transform: rotate(0deg); }
+				to { transform: rotate(360deg); }
+			}
+		`;
+		document.head.appendChild(style);
+
+		return () => {
+			document.head.removeChild(style);
+		};
+	}, []);
+
+	const handleStartGame = (mode) => {
 		// Stop menu music when game starts
 		if (menuMusicRef.current) {
 			menuMusicRef.current.stop();
 		}
-
-		startSound.play();
-		onStartGame();
+		if (!isTournament) {
+			startSound.play();
+			onStartGame();
+		} else {
+			setIsTournament(true);
+			onStartGame();
+		}
 	};
 
 	return (
 		<div style={menuStyles}>
-			<style>
-				{`
-					@keyframes pulse {
-						0% { transform: scale(1); }
-						100% { transform: scale(1.05); box-shadow: 0 0 15px #ff9d9d; }
-					}
-				`}
-			</style>
-			<button style={buttonStyles} onClick={handleStartGame} onMouseOver={handleHover} onMouseOut={handleMouseOut}>
-				Start Game
-			</button>
-			<div style={instructionsStyles}>
+			<div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+				{selectedOption === "fight" && <GiCrosshair style={selectorStyles} />}
+				<button
+					style={{ ...buttonStyles, backgroundColor: selectedOption === "fight" ? "#ff8e8e" : "#ff6b6b", transform: selectedOption === "fight" ? "translate(-2px, -2px)" : "translate(0, 0)", boxShadow: selectedOption === "fight" ? "8px 8px 0px #000000" : "6px 6px 0px #000000" }}
+					onClick={() => handleStartGame("fight")}
+					onMouseOver={(e) => {
+						handleHover(e);
+						setSelectedOption("fight");
+					}}
+					onMouseOut={handleMouseOut}
+				>
+					Fight Mode
+				</button>
+				{selectedOption === "fight" && <GiCrosshair style={selectorStyles} />}
+			</div>
+
+			<div style={{ display: "flex", alignItems: "center", justifyContent: "center" }}>
+				{selectedOption === "tournament" && <GiCrosshair style={selectorStyles} />}
+				<button
+					style={{ ...buttonStyles, marginBottom: 0, backgroundColor: selectedOption === "tournament" ? "#ff8e8e" : "#ff6b6b", transform: selectedOption === "tournament" ? "translate(-2px, -2px)" : "translate(0, 0)", boxShadow: selectedOption === "tournament" ? "8px 8px 0px #000000" : "6px 6px 0px #000000" }}
+					onClick={() => handleStartGame("tournament")}
+					onMouseOver={(e) => {
+						handleHover(e);
+						setSelectedOption("tournament");
+					}}
+					onMouseOut={handleMouseOut}
+				>
+					Tournament Mode
+				</button>
+				{selectedOption === "tournament" && <GiCrosshair style={selectorStyles} />}
+			</div>
+
+			{/* <div style={instructionsStyles}>
 				<p>
 					Controls:
 					<br />
@@ -137,7 +206,7 @@ const Menu = ({ onStartGame }) => {
 					Left Mouse: Shoot
 					<br />
 				</p>
-			</div>
+			</div> */}
 		</div>
 	);
 };
