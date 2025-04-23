@@ -8,6 +8,7 @@ import Game from './components/game/Game.jsx'
 import Results from './components/Results.jsx'
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Layout from './Layout.jsx'
+import TournamentStats from './components/TournamentStats.jsx'
 
 const router = createBrowserRouter([
   {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
       {
         path:"results",
         element: <Results/>
+      },
+      {
+        path:"tournament",
+        element: <TournamentStats/>
       }
     ]
   }

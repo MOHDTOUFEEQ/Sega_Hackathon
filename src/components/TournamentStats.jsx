@@ -1,39 +1,142 @@
-import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import "./TournamentStats.css";
+import React, { useEffect, useState, useRef } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useAppSelector } from "../store/hooks";
+import authService from "../appwrite/auth";
 import statsBg from "/stats_bg.png";
+import "./TournamentStats.css";
 
 const TournamentStats = () => {
 	const navigate = useNavigate();
-	const [isVisible, setIsVisible] = useState(false);
-	const [displayScore, setDisplayScore] = useState(0);
-	const [displayGems, setDisplayGems] = useState(0);
-	const [displayTime, setDisplayTime] = useState(0);
-	const [overallScore, setOverallScore] = useState(0);
-	// Get state from Redux store
-	const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime, health } = useAppSelector((state) => state.player);
-	useEffect(() => {
-		const calculateScore = () => {
-			const timePenalty = endingTime - startTime;
-			const baseScore = health + gems * 5;
-			const elapsed = Math.floor(endingTime - startTime);
-			setDisplayTime(elapsed);
+	const { username } = useAppSelector((state) => state.player);
+	const hasProcessedScore = useRef(false);
 
-			if (killedMonster) {
-				return 100 + Math.round(baseScore - timePenalty + 75);
-			} else {
-				return 100 + Math.round(baseScore - timePenalty - 75);
+	const [overallScore, setOverallScore] = useState(1000);
+	const [topScores, setTopScores] = useState([]);
+	const [beatMessage, setBeatMessage] = useState("");
+	const [myRank, setMyRank] = useState(null);
+
+	useEffect(() => {
+		let isMounted = true;
+		console.log("TournamentStats mounted or username changed:", username);
+
+		const fetchScores = async () => {
+			if (hasProcessedScore.current) {
+				console.log("Score already processed, skipping...");
+				return;
+			}
+
+			try {
+				const params = new URLSearchParams(window.location.search);
+				const scoreParam = params.get("score");
+		
+				if (scoreParam) {
+					setOverallScore(Number(scoreParam));
+				}
+		
+				// Get all scores and remove duplicates by keeping only the highest score for each user
+				const scores = await authService.getAllUserScores();
+				const uniqueScores = scores.reduce((acc, current) => {
+					const existingUser = acc.find(item => item.username === current.username);
+					if (!existingUser) {
+						acc.push(current);
+					} else if (current.score > existingUser.score) {
+						acc = acc.filter(item => item.username !== current.username);
+						acc.push(current);
+					}
+					return acc;
+				}, []);
+		
+				const sortedScores = [...uniqueScores].sort((a, b) => b.score - a.score);
+				if (isMounted) {
+					setTopScores(sortedScores.slice(0, 5));
+				}
+		
+				const playerData = scores.find(score => score.username === username);
+				const playerRank = sortedScores.findIndex(score => score.username === username);
+		
+				if (isMounted && playerRank !== -1) {
+					setMyRank(playerRank + 1);
+				}
+		
+				if (playerData) {
+					if (Number(scoreParam) > playerData.score) {
+						if (isMounted) {
+							setBeatMessage("🎉 Congratulations! You beat your previous score.");
+						}
+						await authService.updateUserScore(username, Number(scoreParam));
+						if (isMounted) {
+							setOverallScore(Number(scoreParam));
+						}
+						// Fetch updated scores after update
+						const updatedScores = await authService.getAllUserScores();
+						const updatedUniqueScores = updatedScores.reduce((acc, current) => {
+							const existingUser = acc.find(item => item.username === current.username);
+							if (!existingUser) {
+								acc.push(current);
+							} else if (current.score > existingUser.score) {
+								acc = acc.filter(item => item.username !== current.username);
+								acc.push(current);
+							}
+							return acc;
+						}, []);
+						const updatedSortedScores = [...updatedUniqueScores].sort((a, b) => b.score - a.score);
+						if (isMounted) {
+							setTopScores(updatedSortedScores.slice(0, 5));
+							const updatedPlayerRank = updatedSortedScores.findIndex(score => score.username === username);
+							if (updatedPlayerRank !== -1) setMyRank(updatedPlayerRank + 1);
+						}
+					} else {
+						if (isMounted) {
+							setBeatMessage("🙁 Sorry! You couldn't beat your previous score.");
+						}
+					}
+				} else {
+					if (isMounted) {
+						setBeatMessage("👋 Welcome! This is your first time playing.");
+					}
+					await authService.addUserScore(username, Number(scoreParam));
+					if (isMounted) {
+						setOverallScore(Number(scoreParam));
+					}
+					// Fetch updated scores after adding new user
+					const updatedScores = await authService.getAllUserScores();
+					const updatedUniqueScores = updatedScores.reduce((acc, current) => {
+						const existingUser = acc.find(item => item.username === current.username);
+						if (!existingUser) {
+							acc.push(current);
+						} else if (current.score > existingUser.score) {
+							acc = acc.filter(item => item.username !== current.username);
+							acc.push(current);
+						}
+						return acc;
+					}, []);
+					const updatedSortedScores = [...updatedUniqueScores].sort((a, b) => b.score - a.score);
+					if (isMounted) {
+						setTopScores(updatedSortedScores.slice(0, 5));
+						const updatedPlayerRank = updatedSortedScores.findIndex(score => score.username === username);
+						if (updatedPlayerRank !== -1) setMyRank(updatedPlayerRank + 1);
+					}
+				}
+
+				hasProcessedScore.current = true;
+			} catch (error) {
+				console.error("Error fetching scores:", error);
 			}
 		};
-
-		setOverallScore(calculateScore());
-	}, [score, gems, endingTime, startTime, killedMonster, health]);
+	
+		fetchScores();
+	
+		return () => {
+			isMounted = false;
+		};
+	}, [username]);
+	  
 
 	return (
 		<motion.div className="results-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
-			{/* Red overlay */}
+			
+			{/* Red Overlay */}
 			<motion.div
 				className="red-overlay"
 				style={{
@@ -50,6 +153,7 @@ const TournamentStats = () => {
 				transition={{ duration: 1.5 }}
 			/>
 
+			{/* Background Image */}
 			<motion.div
 				className="background-overlay"
 				style={{
@@ -63,23 +167,70 @@ const TournamentStats = () => {
 				transition={{ duration: 2.5 }}
 			/>
 
+			{/* Main Content */}
 			<motion.div className="results-content" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
+				
 				<motion.h1 className="game-finished-text" initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.4 }}>
 					<h3>Tournament Score</h3>
 				</motion.h1>
 
+				{/* Beat Message */}
+				{beatMessage && (
+					<motion.div className="beat-message" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.8 }}>
+						<p className="beat-message-text">{beatMessage}</p>
+					</motion.div>
+				)}
+
+				{/* Leaderboard */}
 				<div className="leaderboard-container">
-					{Array.from({ length: 10 }, (_, i) => (
-						<motion.div key={i} className="leaderboard-item" initial={{ x: -50, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 0.6 + i * 0.1 }}>
-							<span className="player-name">Player{i + 1}</span>
-							<span className="score-dots">................................</span>
-							<span className="player-score">{Math.floor(150 + Math.random() * 200 - i * 15)}pts</span>
-						</motion.div>
-					))}
+					<h4 className="leaderboard-title">Top 5 Players</h4>
+					{topScores.length > 0 ? (
+						topScores.map((score, index) => (
+							<motion.div
+								key={score.$id}
+								className="leaderboard-item"
+								initial={{ x: -50, opacity: 0 }}
+								animate={{ x: 0, opacity: 1 }}
+								transition={{ duration: 0.5, delay: 0.6 + index * 0.1 }}
+							>
+								<span className="player-name">{score.username}</span>
+								<span className="score-dots">................................</span>
+								<span className="player-score">{score.score}pts</span>
+							</motion.div>
+						))
+					) : (
+						<p>No scores available</p>
+					)}
 				</div>
 
+				{/* Player Rank */}
+				{myRank !== null && (
+					<div className="my-rank-container flex items-center justify-between px-6 py-4 bg-blue-600 rounded-lg shadow-xl w-full max-w-md mx-auto mt-6">
+						<motion.div
+							className="flex items-center"
+							initial={{ scale: 0.9, opacity: 0 }}
+							animate={{ scale: 1, opacity: 1 }}
+							transition={{ duration: 0.6, delay: 1 }}
+						>
+							<span className="name-text text-white text-2xl font-semibold mr-4">{username}</span>
+							<span className="rank-text text-white text-2xl font-bold mr-4">Your Rank:</span>
+							<span className="rank-number text-yellow-300 text-3xl font-extrabold">{myRank}</span>
+							<span className="my-score text-white text-xl font-semibold ml-4">{overallScore}pts</span>
+						</motion.div>
+					</div>
+				)}
+
+				{/* Home Button */}
 				<div className="action-buttons">
-					<motion.button className="action-button secondary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 1.3 }} onClick={() => navigate("/")}>
+					<motion.button
+						className="action-button secondary"
+						whileHover={{ scale: 1.05 }}
+						whileTap={{ scale: 0.95 }}
+						initial={{ y: 20, opacity: 0 }}
+						animate={{ y: 0, opacity: 1 }}
+						transition={{ duration: 0.5, delay: 1.3 }}
+						onClick={() => navigate("/")}
+					>
 						Home
 					</motion.button>
 				</div>
