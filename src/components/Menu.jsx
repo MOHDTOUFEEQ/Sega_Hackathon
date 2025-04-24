@@ -1,13 +1,15 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Howl } from "howler";
 import { GiCrosshair } from "react-icons/gi";
+import { setIsTournamentMode } from "../store/playerSlice";
+import { useDispatch } from "react-redux";
 
 const Menu = ({ onStartGame }) => {
 	const [isAnimating, setIsAnimating] = useState(true);
 	const [selectedOption, setSelectedOption] = useState("fight");
 	const menuMusicRef = useRef(null);
 	const [isTournament, setIsTournament] = useState(false);
-
+	const dispatch = useDispatch();
 	// Create a Howl instance for the sound
 	const startSound = new Howl({
 		src: ["/sounds/Start_Game.wav"],
@@ -152,10 +154,13 @@ const Menu = ({ onStartGame }) => {
 		if (menuMusicRef.current) {
 			menuMusicRef.current.stop();
 		}
-		if (!isTournament) {
+		if (mode === "fight") {
 			startSound.play();
+			dispatch(setIsTournamentMode(false));
 			onStartGame();
 		} else {
+			startSound.play();
+			dispatch(setIsTournamentMode(true));
 			setIsTournament(true);
 			onStartGame();
 		}

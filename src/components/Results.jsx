@@ -13,7 +13,7 @@ const Results = () => {
 	const [displayTime, setDisplayTime] = useState(0);
 	const [overallScore, setOverallScore] = useState(0);
 	// Get state from Redux store
-	const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime, health } = useAppSelector((state) => state.player);
+	const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime, health, isTournamentMode } = useAppSelector((state) => state.player);
 	useEffect(() => {
 		
 		const calculateScore = () => {
@@ -90,6 +90,11 @@ const Results = () => {
 					<motion.button className="action-button secondary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 1.3 }} onClick={() => navigate("/")}>
 						Home
 					</motion.button>
+					{isTournamentMode && (
+						<motion.button className="action-button secondary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 1.3 }} onClick={() => navigate(`/tournament?score=${overallScore}`)}>
+							Leaderboard
+						</motion.button>
+					)}
 				</div>
 			</motion.div>
 		</motion.div>

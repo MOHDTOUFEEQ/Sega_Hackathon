@@ -10,6 +10,7 @@ interface PlayerState {
   endingTime: number; 
   health: number;
   username: string;
+  isTournamentMode: boolean;
 }
 
 const initialState: PlayerState = {
@@ -22,6 +23,7 @@ const initialState: PlayerState = {
   timeTaken: 0,
   startTime: 0,
   endingTime: 0,
+  isTournamentMode: false,
 };
 
 const playerSlice = createSlice({
@@ -46,6 +48,9 @@ const playerSlice = createSlice({
     setMonsterKilled: (state, action: PayloadAction<boolean>) => {
       state.killedMonster = action.payload;
     },
+    setIsTournamentMode: (state, action: PayloadAction<boolean>) => {
+      state.isTournamentMode = action.payload;
+    },
     setTimeTaken: (state, action: PayloadAction<number>) => {
       state.timeTaken = action.payload;
     },
@@ -69,6 +74,7 @@ export const {
   setStartTime,
   setEndingTime,
   resetPlayerState,
+  setIsTournamentMode,
 } = playerSlice.actions;
 
 export default playerSlice.reducer; 

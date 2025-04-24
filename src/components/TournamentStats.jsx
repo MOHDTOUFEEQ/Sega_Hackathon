@@ -18,11 +18,9 @@ const TournamentStats = () => {
 
 	useEffect(() => {
 		let isMounted = true;
-		console.log("TournamentStats mounted or username changed:", username);
 
 		const fetchScores = async () => {
 			if (hasProcessedScore.current) {
-				console.log("Score already processed, skipping...");
 				return;
 			}
 
@@ -205,20 +203,30 @@ const TournamentStats = () => {
 
 				{/* Player Rank */}
 				{myRank !== null && (
-					<div className="my-rank-container flex items-center justify-between px-6 py-4 bg-blue-600 rounded-lg shadow-xl w-full max-w-md mx-auto mt-6">
+					<div className="my-rank-container flex items-center justify-between px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-700 rounded-lg shadow-2xl w-full max-w-4xl mx-auto mt-6">
 						<motion.div
-							className="flex items-center"
-							initial={{ scale: 0.9, opacity: 0 }}
-							animate={{ scale: 1, opacity: 1 }}
-							transition={{ duration: 0.6, delay: 1 }}
+						className="flex w-full items-center justify-between"
+						initial={{ scale: 0.9, opacity: 0 }}
+						animate={{ scale: 1, opacity: 1 }}
+						transition={{ duration: 0.6, delay: 1 }}
 						>
-							<span className="name-text text-white text-2xl font-semibold mr-4">{username}</span>
-							<span className="rank-text text-white text-2xl font-bold mr-4">Your Rank:</span>
-							<span className="rank-number text-yellow-300 text-3xl font-extrabold">{myRank}</span>
-							<span className="my-score text-white text-xl font-semibold ml-4">{overallScore}pts</span>
+						{/* Rank (Left Side) */}
+						<div className="flex items-center space-x-3">
+							<span className="rank-text text-white text-2xl font-semibold">Your Rank:</span>
+							<span className="rank-number text-yellow-400 text-4xl font-extrabold">{myRank}</span>
+						</div>
+
+						{/* Username (Center) */}
+						<span className="name-text text-white text-2xl font-semibold text-center">{username}</span>
+
+						{/* Score (Right Side) */}
+						<span className="my-score text-white text-2xl font-semibold">{overallScore} pts</span>
 						</motion.div>
 					</div>
-				)}
+					)}
+
+
+
 
 				{/* Home Button */}
 				<div className="action-buttons">

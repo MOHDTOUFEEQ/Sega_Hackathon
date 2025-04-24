@@ -5,9 +5,4 @@ const conf = {
     appwriteCollectionId: import.meta.env.VITE_APPWRITE_COLLECTION_ID,
 };
 
-console.log("Appwrite URL:", conf.appwriteUrl);
-console.log("Appwrite Project ID:", conf.appwriteProjectId);
-console.log("Appwrite Database ID:", conf.appwriteDatabaseId);
-console.log("Appwrite Collection ID:", conf.appwriteCollectionId);
-
 export default conf;

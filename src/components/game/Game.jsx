@@ -61,7 +61,6 @@ export default function Game() {
 				dispatch(incrementScore(0));
 				init();
 				startRendering();
-				console.log("✅ Game initialized!");
 			} catch (error) {
 				console.error("❌ Error during game initialization:", error);
 			}

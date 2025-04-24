@@ -321,8 +321,7 @@ function checkSpecialTileCollisions() {
 
 		// Check for collision with player
 		if (player.x < tile.x + tile.width && player.x + player.width > tile.x && player.y < tile.y + tile.height && player.y + player.height > tile.y) {
-			// Player touched this tile!
-			console.log("Player touched special tile 139 at", tile.x, tile.y);
+
 
 			// Your custom action here - example:
 
@@ -1160,8 +1159,6 @@ function animate(backgroundCanvas) {
 							if (winnerScreen) {
 								winnerScreen.classList.remove("hidden");
 							} else {
-								console.error("Winner screen element not found");
-								// Fallback to game over screen if winner screen doesn't exist
 								const gameOverScreen = document.getElementById("gameOverScreen");
 								if (gameOverScreen) {
 									gameOverScreen.classList.remove("hidden");
