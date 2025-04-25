@@ -47,13 +47,11 @@ function initializeCanvas() {
 		// Use the global canvas reference
 		canvas = window.gameCanvas;
 		if (!canvas) {
-			console.error("Canvas element not found");
 			return false;
 		}
 
 		c = canvas.getContext("2d");
 		if (!c) {
-			console.error("Could not get canvas context");
 			return false;
 		}
 
@@ -63,7 +61,6 @@ function initializeCanvas() {
 
 		return true;
 	} catch (error) {
-		console.error("Error initializing canvas:", error);
 		return false;
 	}
 }
@@ -274,7 +271,7 @@ window.addEventListener("keyup", (event) => {
 });
 // Player shooting
 window.addEventListener("mousedown", (e) => {
-	if (e.button === 0 && !window.isGameOver) {
+	if (e.button === 0 && !window.isGameOver && player) {
 		player.fire();
 	}
 });
@@ -425,7 +422,6 @@ function addRedOverlay() {
 
 function init() {
 	if (!initializeCanvas()) {
-		console.error("Failed to initialize canvas");
 		return;
 	}
 
@@ -1327,7 +1323,7 @@ async function startRendering() {
 
 		animate(backgroundCanvas);
 	} catch (error) {
-		console.error("Error during rendering:", error);
+		// Error handling without logging
 	}
 }
 

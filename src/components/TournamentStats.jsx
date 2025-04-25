@@ -168,9 +168,9 @@ const TournamentStats = () => {
 			{/* Main Content */}
 			<motion.div className="results-content" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.8, delay: 0.2 }}>
 				
-				<motion.h1 className="game-finished-text" initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.4 }}>
-					<h3>Tournament Score</h3>
-				</motion.h1>
+				<motion.h3 className="game-finished-text" initial={{ y: -50, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.6, delay: 0.4 }}>
+					Tournament Score
+				</motion.h3>
 
 				{/* Beat Message */}
 				{beatMessage && (

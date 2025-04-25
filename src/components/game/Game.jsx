@@ -3,8 +3,7 @@ import { init, startRendering } from "./js/index.js";
 import "../../App.css";
 import { useNavigate } from "react-router-dom";
 import { useAppDispatch, useAppSelector } from "../../store/hooks";
-import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setHealth } from "../../store/playerSlice";
-import EndGameStats from "../EndGameStats";
+import { setPlayerDead, setTimeTaken, incrementScore, collectGem, setMonsterKilled, setStartTime, setHealth, setEndingTime } from "../../store/playerSlice";
 let gameInitialized = false;
 let gameLoop = null;
 
@@ -22,20 +21,25 @@ export default function Game() {
 
 	useEffect(() => {
 		const calculateScore = () => {
-		const timePenalty = endingTime - startTime;
-		const baseScore = health + gems * 5;
-		const elapsed = Math.floor(endingTime - startTime);
-		setGameTime(elapsed); 
-		
-		if (killedMonster) {
-			return 100 + Math.round(baseScore - timePenalty + 75);
-		} else {
-			return 100 + Math.round(baseScore - timePenalty - 75);
-		}
+			// Calculate time taken in seconds
+			const timeTaken = Math.max(0, Math.floor(endingTime - startTime));
+			setGameTime(timeTaken);
 
+			// Base score from health and gems
+			const baseScore = health + gems * 5;
+
+			// Time penalty - reduce score based on time taken
+			// For every 10 seconds, reduce score by 1 point
+			const timePenalty = Math.floor(timeTaken / 10);
+
+			if (killedMonster) {
+				return Math.max(0, 100 + Math.round(baseScore - timePenalty + 75));
+			} else {
+				return Math.max(0, 100 + Math.round(baseScore - timePenalty - 75));
+			}
 		};
 		setOverallScore(calculateScore());
-	}, [health]);
+	}, [health, gems, killedMonster, endingTime, startTime]);
 
 	useEffect(() => {
 		const canvas = canvasRef.current;
@@ -43,16 +47,15 @@ export default function Game() {
 		if (gameInitialized) return;
 		gameInitialized = true;
 
-	
-		
 		// Start timer
+		dispatch(setStartTime(Date.now() / 1000));
+		dispatch(setEndingTime(0));  // Reset ending time
 		
 		const waitForCanvas = () => {
 			window.gameCanvas = canvas;
 			window.isGameOver = false;
 
 			try {
-				dispatch(setStartTime(Date.now() / 1000));
 				dispatch(setHealth(100));
 				dispatch(collectGem(0));
 				dispatch(setMonsterKilled(false));

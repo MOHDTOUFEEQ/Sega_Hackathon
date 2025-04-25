@@ -1,4 +1,3 @@
-
 class gameState {
 	constructor() {
 		this.healthBarFill = document.getElementById("healthBarFill");
@@ -8,6 +7,7 @@ class gameState {
 
 	updateHealthBar(health) {
 		if (this.isGameOver) return; // Don't update health if game is over
+		if (!this.healthBarFill) return; // Don't update if healthBarFill doesn't exist
 
 		this.healthBarFill.style.width = `${health}%`;
 

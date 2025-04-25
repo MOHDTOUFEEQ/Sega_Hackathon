@@ -15,22 +15,27 @@ const Results = () => {
 	// Get state from Redux store
 	const { score, gems, timeTaken, isDead, killedMonster, endingTime, startTime, health, isTournamentMode } = useAppSelector((state) => state.player);
 	useEffect(() => {
-		
 		const calculateScore = () => {
-			const timePenalty = endingTime - startTime;
+			// Calculate time taken in seconds
+			const timeTaken = Math.max(0, Math.floor(endingTime - startTime));
+			setDisplayTime(timeTaken);
+
+			// Base score from health and gems
 			const baseScore = health + gems * 5;
-			const elapsed = Math.floor(endingTime - startTime);
-			setDisplayTime(elapsed);
+
+			// Time penalty - reduce score based on time taken
+			// For every 10 seconds, reduce score by 1 point
+			const timePenalty = Math.floor(timeTaken / 10);
 
 			if (killedMonster) {
-				return 100 + Math.round(baseScore - timePenalty + 75);
+				return Math.max(0, 100 + Math.round(baseScore - timePenalty + 75));
 			} else {
-				return 100 + Math.round(baseScore - timePenalty - 75);
+				return Math.max(0, 100 + Math.round(baseScore - timePenalty - 75));
 			}
 		};
 
 		setOverallScore(calculateScore());
-	}, [health]);
+	}, [health, gems, killedMonster, endingTime, startTime]);
 
 	return (
 		<motion.div className="results-container" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
