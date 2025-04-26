@@ -318,8 +318,6 @@ function checkSpecialTileCollisions() {
 
 		// Check for collision with player
 		if (player.x < tile.x + tile.width && player.x + player.width > tile.x && player.y < tile.y + tile.height && player.y + player.height > tile.y) {
-
-
 			// Your custom action here - example:
 
 			player.health -= 0.5;
@@ -420,6 +418,56 @@ function addRedOverlay() {
 	}, 500);
 }
 
+function addBrokenGlassOverlay() {
+	// Create overlay if it doesn't exist
+	let overlay = document.getElementById("glassOverlay");
+	if (!overlay) {
+		overlay = document.createElement("div");
+		overlay.id = "glassOverlay";
+
+		// Make sure the overlay covers the entire canvas area
+		overlay.style.position = "absolute";
+		overlay.style.top = "0";
+		overlay.style.left = "0";
+		overlay.style.width = "100%";
+		overlay.style.height = "100%";
+
+		// Fix the background image syntax with url() and update path if needed
+		overlay.style.backgroundImage = "url('/src/components/game/images/glass.png')";
+		overlay.style.backgroundSize = "70%";
+		overlay.style.backgroundPosition = "center";
+		overlay.style.pointerEvents = "none"; // Allow clicking through the overlay
+
+		// Increase opacity for better visibility
+		overlay.style.opacity = "0.5";
+
+		// Higher z-index to ensure visibility
+		overlay.style.zIndex = "1005";
+
+		// Add a border to help debug (can remove later)
+		overlay.style.border = "2px solid red";
+
+		// Make sure we have a valid parent element
+		if (canvas && canvas.parentElement) {
+			const canvasContainer = canvas.parentElement;
+			// Ensure the parent has position relative or absolute
+			if (getComputedStyle(canvasContainer).position === "static") {
+				canvasContainer.style.position = "relative";
+			}
+			canvasContainer.appendChild(overlay);
+			console.log("Glass overlay added to DOM");
+		} else {
+			console.error("Cannot find canvas parent element");
+		}
+	}
+}
+
+// Add this function to get the current tournament mode value
+function isTournamentMode() {
+	const state = store.getState();
+	return state.player.isTournamentMode; // Adjust this path to match your Redux state structure
+}
+
 function init() {
 	if (!initializeCanvas()) {
 		return;
@@ -428,15 +476,25 @@ function init() {
 	// Reset game state variables
 	window.isGameOver = false;
 	window.isWinner = false;
-	hasAlarmPlayed = false; // Reset the alarm flag when game initializes
+	hasAlarmPlayed = false;
 
-	// Start playing the soundtrack
-	if (sound.soundtrack) {
-		sound.soundtrack.loop = true; // Make the soundtrack loop
-		sound.soundtrack.play();
-		soundtrack = sound.soundtrack;
+	// Get tournament mode from Redux store
+	const tournamentMode = isTournamentMode();
+
+	if (tournamentMode) {
+		if (sound.tournamentMusic) {
+			sound.tournamentMusic.loop = true;
+			sound.tournamentMusic.play();
+			soundtrack = sound.tournamentMusic;
+		}
+		addBrokenGlassOverlay();
+	} else {
+		if (sound.soundtrack) {
+			sound.soundtrack.loop = true;
+			sound.soundtrack.play();
+			soundtrack = sound.soundtrack;
+		}
 	}
-
 	gems = [];
 	gemCount = 0;
 	gemUI = new Sprite({
@@ -951,8 +1009,8 @@ function animate(backgroundCanvas) {
 					const gameOverScreen = document.getElementById("gameOverScreen");
 					window.isGameOver = true;
 					sound.playerDeath.play();
-					
-					store.dispatch(setEndingTime(Date.now()/1000));
+
+					store.dispatch(setEndingTime(Date.now() / 1000));
 					store.dispatch(setPlayerDead()); // Update Redux store directly
 					store.dispatch(collectGem(gemCount)); // Update Redux store directly
 					store.dispatch(setMonsterKilled(false)); // Update Redux store directly
@@ -1146,7 +1204,7 @@ function animate(backgroundCanvas) {
 						window.isWinner = true;
 						store.dispatch(collectGem(gemCount));
 
-						store.dispatch(setEndingTime(Date.now()/1000));
+						store.dispatch(setEndingTime(Date.now() / 1000));
 						store.dispatch(setMonsterKilled(true)); // Update Redux store directly
 						store.dispatch(setHealth(player.health));
 						// Display the winner screen
@@ -1162,7 +1220,6 @@ function animate(backgroundCanvas) {
 							}
 						}, 1000); // Short delay to show the death animation
 						// Show game over screen
-						
 					}
 					break;
 				}
@@ -1174,7 +1231,7 @@ function animate(backgroundCanvas) {
 				for (let i = bigMonster.bullets.length - 1; i >= 0; i--) {
 					const bullet = bigMonster.bullets[i];
 					if (bullet.x < player.x + player.width && bullet.x + bullet.width > player.x && bullet.y < player.y + player.height && bullet.y + bullet.height > player.y) {
-						player.health -= 10; // Reduce player health by 5
+						player.health -= 7; // Reduce player health by 7
 						sound.hurt.play();
 						bigMonster.bullets.splice(i, 1); // Remove the bullet
 						player.setIsInvincible(); // Make player temporarily invincible
@@ -1329,5 +1386,12 @@ async function startRendering() {
 
 init();
 startRendering();
+// You can also subscribe to Redux state changes if needed
+store.subscribe(() => {
+	// This callback will run whenever the Redux state changes
+	// You can check for tournament mode changes here if needed
+	// const tournamentMode = isTournamentMode();
+	// Only use this if you need to respond to changes while the game is running
+});
 
 export { init, startRendering, resetGameTiming };

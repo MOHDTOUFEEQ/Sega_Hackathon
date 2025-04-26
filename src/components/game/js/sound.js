@@ -62,7 +62,12 @@ const sound = {
 	alarm: new Howl({
 		src: ["/sounds/Alarm.wav"],
 		loop: false,
-		volume: 1.4,
+		volume: 1.6,
+	}),
+	tournamentMusic: new Howl({
+		src: ["/sounds/Tournament_Music.mp3"],
+		loop: true,
+		volume: 0.5,
 	}),
 };
 

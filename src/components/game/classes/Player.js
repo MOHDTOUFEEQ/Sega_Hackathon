@@ -14,20 +14,50 @@ class Player {
 		this.velocity = velocity;
 		this.camera = camera; // Store camera reference
 		this.isOnGround = false;
-		this.isImageLoaded = false;
 		this.health = 100;
-		this.image = new Image();
 		this.bullets = []; // in constructor
 
-		this.image.onload = () => {
-			this.isImageLoaded = true;
+		// Replace single image with multiple images
+		this.images = {
+			idle: new Image(),
+			run: new Image(),
+			jump: new Image(),
+			fall: new Image(),
 		};
 
-		this.image.onerror = () => {
-			console.error("Failed to load character image:", this.image.src);
+		this.isImageLoaded = {
+			idle: false,
+			run: false,
+			jump: false,
+			fall: false,
 		};
 
-		this.image.src = "/src/components/game/images/character.png";
+		// Load all images
+		this.images.idle.onload = () => {
+			this.isImageLoaded.idle = true;
+		};
+		this.images.run.onload = () => {
+			this.isImageLoaded.run = true;
+		};
+		this.images.jump.onload = () => {
+			this.isImageLoaded.jump = true;
+		};
+		this.images.fall.onload = () => {
+			this.isImageLoaded.fall = true;
+		};
+
+		// Set error handlers
+		Object.keys(this.images).forEach((key) => {
+			this.images[key].onerror = () => {
+				console.error(`Failed to load ${key} image:`, this.images[key].src);
+			};
+		});
+
+		// Set image sources
+		this.images.idle.src = "/src/components/game/images/char-final.png";
+		this.images.run.src = "/src/components/game/images/char-final.png";
+		this.images.jump.src = "/src/components/game/images/char-jump.png";
+		this.images.fall.src = "/src/components/game/images/char-jump.png";
 
 		this.elapsedTime = 0;
 		this.currentFrame = 0;
@@ -39,37 +69,30 @@ class Player {
 			idle: {
 				x: 0,
 				y: 0,
-				width: 33,
-				height: 32,
-				frames: 4,
+				width: 1024,
+				height: 1024,
+				frames: 1,
 			},
 			run: {
 				x: 0,
 				y: 32,
-				width: 33,
-				height: 32,
-				frames: 6,
+				width: 1024,
+				height: 1024,
+				frames: 1,
 			},
 			jump: {
 				x: 0,
 				y: 32 * 5,
-				width: 33,
-				height: 32,
+				width: 1024,
+				height: 1024,
 				frames: 1,
 			},
 			fall: {
 				x: 33,
 				y: 32 * 5,
-				width: 33,
-				height: 32,
+				width: 1024,
+				height: 1024,
 				frames: 1,
-			},
-			roll: {
-				x: 0,
-				y: 32 * 9,
-				width: 33,
-				height: 32,
-				frames: 4,
 			},
 		};
 
@@ -97,7 +120,9 @@ class Player {
 	}
 
 	draw(c) {
-		if (this.isImageLoaded) {
+		const currentAnimation = this.currentSprite === this.sprites.idle ? "idle" : this.currentSprite === this.sprites.run ? "run" : this.currentSprite === this.sprites.jump ? "jump" : this.currentSprite === this.sprites.fall ? "fall" : "idle";
+
+		if (this.isImageLoaded[currentAnimation]) {
 			let xScale = 1;
 			let x = this.x;
 
@@ -115,33 +140,18 @@ class Player {
 			c.scale(xScale, 1);
 
 			try {
-				// First approach: Simplified drawing - just draw the whole image
-				c.drawImage(this.image, x, this.y, this.width, this.height);
-
-				// Draw hitbox for debugging
-				// c.strokeStyle = 'red';
-				// c.lineWidth = 2;
-				// c.strokeRect(
-				// 	this.hitbox.x * xScale,
-				// 	this.hitbox.y,
-				// 	this.hitbox.width,
-				// 	this.hitbox.height
-				// );
-
-				// If the above works, then we can try the more complex sprite sheet approach:
-				/*
+				// Draw the appropriate image for the current animation
 				c.drawImage(
-					this.image, 
-					this.currentSprite.x + this.currentSprite.width * this.currentFrame, 
-					this.currentSprite.y, 
-					this.currentSprite.width, 
-					this.currentSprite.height, 
-					x, 
-					this.y, 
-					this.width, 
+					this.images[currentAnimation],
+					this.currentSprite.x + this.currentSprite.width * this.currentFrame,
+					0, // y is always 0 since we have separate images
+					this.currentSprite.width,
+					this.currentSprite.height,
+					x,
+					this.y,
+					this.width,
 					this.height
 				);
-				*/
 			} catch (err) {
 				console.error("Error drawing player sprite:", err);
 			}
@@ -194,16 +204,6 @@ class Player {
 
 		this.determineDirection();
 		this.switchSprites();
-	}
-
-	roll() {
-		if (this.isOnGround) {
-			this.currentSprite = this.sprites.roll;
-			this.currentFrame = 0;
-			this.isRolling = true;
-			this.isInAirAfterRolling = true;
-			this.velocity.x = this.facing === "right" ? 300 : -300;
-		}
 	}
 
 	determineDirection() {
@@ -365,8 +365,8 @@ class Player {
 		const playerScreenY = this.y - this.camera.y;
 
 		// Create bullet at the player's screen position
-		const bulletX = this.facing === "right" ? playerScreenX + this.width : playerScreenX - 10;
-		const bulletY = playerScreenY + this.height / 2;
+		const bulletX = this.facing === "right" ? playerScreenX + 20 : playerScreenX - 10;
+		const bulletY = playerScreenY + this.height / 7;
 
 		this.bullets.push(new bullet(bulletX, bulletY, this.facing === "right" ? 8 : -8));
 	}
