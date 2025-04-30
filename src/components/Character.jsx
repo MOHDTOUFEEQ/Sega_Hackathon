@@ -25,7 +25,7 @@ function Character() {
             const formData = new FormData();
             formData.append('subject', subject);
 
-            const response = await fetch('http://127.0.0.1:5000/', {
+            const response = await fetch('https://fbe0-188-28-249-31.ngrok-free.app', {
                 method: 'POST',
                 body: formData,
             })
@@ -36,13 +36,13 @@ function Character() {
             }
 
             if (dataa.filename) {
-                setImgUrl(dataa.filename );
+                setImgUrl(dataa.appwrite_url);
             } else {
                 throw new Error('No image URL in response');
             }
 
-            dispatch(setCharacterPath(dataa.img_url));
-            console.log("characterPath", dataa.img_url);
+            dispatch(setCharacterPath(dataa.appwrite_url));
+            console.log("characterPath", dataa.appwrite_url);
         } catch (error) {
             console.error('Error generating image:', error);
             setError('Failed to generate character. Please try again.');
@@ -90,7 +90,7 @@ function Character() {
                     
                     {imgUrl && (
                         <div className="image-container">
-                            <img style={{width: "256px", height: "256px"}} src={"/src/components/game/images/" + imgUrl} alt="Generated Character" />
+                            <img style={{width: "256px", height: "256px"}} src={imgUrl} alt="Generated Character" />
                             <button 
                                 onClick={handleContinue}
                                 style={{
