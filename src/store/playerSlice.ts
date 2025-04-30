@@ -11,6 +11,7 @@ interface PlayerState {
   health: number;
   username: string;
   isTournamentMode: boolean;
+  characterPath: string;
 }
 
 const initialState: PlayerState = {
@@ -19,6 +20,7 @@ const initialState: PlayerState = {
   health: 100,
   isDead: false,
   username: "Kris",
+  characterPath: "/src/components/game/images/batman_with_the_gun_63cc21fb.png",
   killedMonster: false,
   timeTaken: 0,
   startTime: 0,
@@ -54,6 +56,9 @@ const playerSlice = createSlice({
     setTimeTaken: (state, action: PayloadAction<number>) => {
       state.timeTaken = action.payload;
     },
+    setCharacterPath: (state, action: PayloadAction<string>) => {
+      state.characterPath = action.payload;
+    },
     setStartTime: (state, action: PayloadAction<number>) => {
       state.startTime = action.payload;
     },
@@ -74,6 +79,7 @@ export const {
   setStartTime,
   setEndingTime,
   resetPlayerState,
+  setCharacterPath,
   setIsTournamentMode,
 } = playerSlice.actions;
 

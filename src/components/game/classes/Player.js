@@ -1,5 +1,6 @@
 import bullet from "./bullet";
 import sound from "../js/sound";
+import { store } from "../../../store/store";
 
 const X_VELOCITY = 200;
 const JUMP_POWER = 350;
@@ -16,6 +17,20 @@ class Player {
 		this.isOnGround = false;
 		this.health = 100;
 		this.bullets = []; // in constructor
+
+		// Get state from Redux store
+		const state = store.getState();
+		this.isTournamentMode = state.player.isTournamentMode;
+		this.characterPath = state.player.characterPath;
+
+		// Subscribe to store changes
+		this.unsubscribe = store.subscribe(() => {
+			const newState = store.getState();
+			if (newState.player.characterPath !== this.characterPath) {
+				this.characterPath = newState.player.characterPath;
+				this.loadCharacterImages();
+			}
+		});
 
 		// Replace single image with multiple images
 		this.images = {
@@ -52,12 +67,19 @@ class Player {
 				console.error(`Failed to load ${key} image:`, this.images[key].src);
 			};
 		});
-
-		// Set image sources
-		this.images.idle.src = "/src/components/game/images/char-final.png";
-		this.images.run.src = "/src/components/game/images/char-final.png";
-		this.images.jump.src = "/src/components/game/images/char-jump.png";
-		this.images.fall.src = "/src/components/game/images/char-jump.png";
+		console.log("characterPath", this.characterPath);
+		if (this.isTournamentMode) {
+			this.images.idle.src = this.characterPath;
+			this.images.run.src = this.characterPath;
+			this.images.jump.src = this.characterPath;
+			this.images.fall.src = this.characterPath;
+		} else {
+			// Set image sources
+			this.images.idle.src = "/src/components/game/images/char-final.png";
+			this.images.run.src = "/src/components/game/images/char-final.png";
+			this.images.jump.src = "/src/components/game/images/char-jump.png";
+			this.images.fall.src = "/src/components/game/images/char-jump.png";
+		}
 
 		this.elapsedTime = 0;
 		this.currentFrame = 0;
@@ -65,12 +87,13 @@ class Player {
 		this.jumpStrength = -JUMP_POWER;
 		this.groundLevel = 400;
 
-		this.sprites = {
-			idle: {
-				x: 0,
-				y: 0,
-				width: 1024,
-				height: 1024,
+		
+			this.sprites = {
+				idle: {
+					x: 0,
+					y: 0,
+					width: 1024,
+					height: 1024,
 				frames: 1,
 			},
 			run: {
@@ -95,6 +118,7 @@ class Player {
 				frames: 1,
 			},
 		};
+		
 
 		this.currentSprite = this.sprites.idle;
 		this.facing = "right";
@@ -369,6 +393,28 @@ class Player {
 		const bulletY = playerScreenY + this.height / 7;
 
 		this.bullets.push(new bullet(bulletX, bulletY, this.facing === "right" ? 8 : -8));
+	}
+
+	// Add cleanup method
+	cleanup() {
+		if (this.unsubscribe) {
+			this.unsubscribe();
+		}
+	}
+
+	// Add method to load character images
+	loadCharacterImages() {
+		if (this.isTournamentMode) {
+			this.images.idle.src = this.characterPath;
+			this.images.run.src = this.characterPath;
+			this.images.jump.src = this.characterPath;
+			this.images.fall.src = this.characterPath;
+		} else {
+			this.images.idle.src = "/src/components/game/images/char-final.png";
+			this.images.run.src = "/src/components/game/images/char-final.png";
+			this.images.jump.src = "/src/components/game/images/char-jump.png";
+			this.images.fall.src = "/src/components/game/images/char-jump.png";
+		}
 	}
 }
 

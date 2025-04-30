@@ -3,13 +3,15 @@ import { Howl } from "howler";
 import { GiCrosshair } from "react-icons/gi";
 import { setIsTournamentMode } from "../store/playerSlice";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 const Menu = ({ onStartGame }) => {
 	const [isAnimating, setIsAnimating] = useState(true);
 	const [selectedOption, setSelectedOption] = useState("fight");
 	const menuMusicRef = useRef(null);
-	const [isTournament, setIsTournament] = useState(false);
 	const dispatch = useDispatch();
+	const navigate = useNavigate();
+
 	// Create a Howl instance for the sound
 	const startSound = new Howl({
 		src: ["/sounds/Start_Game.wav"],
@@ -57,7 +59,6 @@ const Menu = ({ onStartGame }) => {
 
 	const menuStyles = {
 		position: "absolute",
-
 		top: "50%",
 		left: "50%",
 		width: "100%",
@@ -90,14 +91,12 @@ const Menu = ({ onStartGame }) => {
 		letterSpacing: "2px",
 		imageRendering: "pixelated",
 		transition: "all 0.1s",
-		// animation: isAnimating ? "pulse 1.5s infinite alternate" : "none",
 	};
 
 	const instructionsStyles = {
 		color: "#f8f878",
 		fontSize: "16px",
 		textAlign: "center",
-
 		fontFamily: "'Press Start 2P', 'Courier New', monospace",
 		lineHeight: "1.8",
 		textShadow: "2px 2px 0px #000000",
@@ -150,7 +149,6 @@ const Menu = ({ onStartGame }) => {
 	}, []);
 
 	const handleStartGame = (mode) => {
-		// Stop menu music when game starts
 		if (menuMusicRef.current) {
 			menuMusicRef.current.stop();
 		}
@@ -161,8 +159,7 @@ const Menu = ({ onStartGame }) => {
 		} else {
 			startSound.play();
 			dispatch(setIsTournamentMode(true));
-			setIsTournament(true);
-			onStartGame();
+			navigate("/Character");
 		}
 	};
 
@@ -199,19 +196,6 @@ const Menu = ({ onStartGame }) => {
 				</button>
 				{selectedOption === "tournament" && <GiCrosshair style={selectorStyles} />}
 			</div>
-
-			{/* <div style={instructionsStyles}>
-				<p>
-					Controls:
-					<br />
-					W or Arrow Up: Jump
-					<br />
-					A/D or Arrow Left/Right: Move
-					<br />
-					Left Mouse: Shoot
-					<br />
-				</p>
-			</div> */}
 		</div>
 	);
 };

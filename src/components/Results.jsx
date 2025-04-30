@@ -101,6 +101,13 @@ const Results = () => {
 						</motion.button>
 					)}
 				</div>
+				<div className="action-buttons">
+					<motion.button className="action-button secondary" whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.5, delay: 1.3 }} onClick={() => navigate("/")}>
+						collect your reward
+					</motion.button>
+					
+					
+				</div>
 			</motion.div>
 		</motion.div>
 	);
