@@ -25,7 +25,7 @@ function Character() {
 			const formData = new FormData();
 			formData.append("subject", subject);
 
-			const response = await fetch("https://e008-77-101-25-164.ngrok-free.app", {
+			const response = await fetch("https://0721-188-28-249-31.ngrok-free.app", {
 				method: "POST",
 				body: formData,
 			});
