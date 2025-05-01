@@ -21,8 +21,7 @@ class Bullet {
 		};
 
 		// Set the path to your bullet sprite
-		this.image.src = "/src/components/game/images/laser.png";
-		// this.explosionImage.src = "/src/components/game/images/explosion.png";
+		this.image.src = "/images/laser.png";
 
 		// Sprite animation properties
 		this.currentFrame = 0;

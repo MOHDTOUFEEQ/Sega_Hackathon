@@ -85,16 +85,16 @@ const layersData = {
 };
 
 const tilesets = {
-	l_New_Layer_1: { imageUrl: "/src/components/game/images/decorations1.png", tileSize: 16 },
-	l_New_Layer_2: { imageUrl: "/src/components/game/images/decorations1.png", tileSize: 16 },
-	l_New_Layer_8: { imageUrl: "/src/components/game/images/tileset1.png", tileSize: 16 },
-	l_Back_Tiles: { imageUrl: "/src/components/game/images/tileset1.png", tileSize: 16 },
-	l_Decorations: { imageUrl: "/src/components/game/images/decorations1.png", tileSize: 16 },
-	l_Front_Tiles: { imageUrl: "/src/components/game/images/tileset1.png", tileSize: 16 },
-	l_Shrooms: { imageUrl: "/src/components/game/images/decorations1.png", tileSize: 16 },
-	l_Collisions: { imageUrl: "/src/components/game/images/decorations1.png", tileSize: 16 },
-	l_Grass: { imageUrl: "/src/components/game/images/tileset1.png", tileSize: 16 },
-	l_Trees: { imageUrl: "/src/components/game/images/decorations1.png", tileSize: 16 },
+	l_New_Layer_1: { imageUrl: "/images/decorations1.png", tileSize: 16 },
+	l_New_Layer_2: { imageUrl: "/images/decorations1.png", tileSize: 16 },
+	l_New_Layer_8: { imageUrl: "/images/tileset1.png", tileSize: 16 },
+	l_Back_Tiles: { imageUrl: "/images/tileset1.png", tileSize: 16 },
+	l_Decorations: { imageUrl: "/images/decorations1.png", tileSize: 16 },
+	l_Front_Tiles: { imageUrl: "/images/tileset1.png", tileSize: 16 },
+	l_Shrooms: { imageUrl: "/images/decorations1.png", tileSize: 16 },
+	l_Collisions: { imageUrl: "/images/decorations1.png", tileSize: 16 },
+	l_Grass: { imageUrl: "/images/tileset1.png", tileSize: 16 },
+	l_Trees: { imageUrl: "/images/decorations1.png", tileSize: 16 },
 };
 
 // Tile setup
@@ -433,7 +433,7 @@ function addBrokenGlassOverlay() {
 		overlay.style.height = "100%";
 
 		// Fix the background image syntax with url() and update path if needed
-		overlay.style.backgroundImage = "url('/src/components/game/images/glass.png')";
+		overlay.style.backgroundImage = "url('/images/glass.png')";
 		overlay.style.backgroundSize = "70%";
 		overlay.style.backgroundPosition = "center";
 		overlay.style.pointerEvents = "none"; // Allow clicking through the overlay
@@ -502,7 +502,7 @@ function init() {
 		y: 36,
 		width: 15,
 		height: 13,
-		imageSrc: "/src/components/game/images/gem.png",
+		imageSrc: "/images/gem.png",
 		spriteCropbox: {
 			x: 0,
 			y: 0,
@@ -521,7 +521,7 @@ function init() {
 						y: y * 16,
 						width: 15,
 						height: 13,
-						imageSrc: "/src/components/game/images/gem.png",
+						imageSrc: "/images/gem.png",
 						spriteCropbox: {
 							x: 0,
 							y: 0,
@@ -655,7 +655,7 @@ function init() {
 			y: 495,
 			width: 30,
 			height: 30,
-			imageSrc: "/src/components/game/images/enemy.png",
+			imageSrc: "/images/enemy.png",
 			canvasWidth: canvas.width,
 		}),
 		new Enemy({
@@ -663,7 +663,7 @@ function init() {
 			y: 495,
 			width: 30,
 			height: 35,
-			imageSrc: "/src/components/game/images/enemy.png",
+			imageSrc: "/images/enemy.png",
 			canvasWidth: canvas.width,
 		}),
 		new Enemy({
@@ -671,7 +671,7 @@ function init() {
 			y: 68,
 			width: 30,
 			height: 35,
-			imageSrc: "/src/components/game/images/enemy.png",
+			imageSrc: "/images/enemy.png",
 			canvasWidth: canvas.width,
 		}),
 		new Enemy({
@@ -679,7 +679,7 @@ function init() {
 			y: 30,
 			width: 30,
 			height: 35,
-			imageSrc: "/src/components/game/images/enemy.png",
+			imageSrc: "/images/enemy.png",
 			canvasWidth: canvas.width,
 		}),
 		new Enemy({
@@ -687,7 +687,7 @@ function init() {
 			y: 250,
 			width: 30,
 			height: 30,
-			imageSrc: "/src/components/game/images/enemy.png",
+			imageSrc: "/images/enemy.png",
 			canvasWidth: canvas.width,
 		}),
 	];
@@ -696,7 +696,7 @@ function init() {
 	bigMonster = new BigMonster({
 		x: 1800,
 		y: 100,
-		imageSrc: "/src/components/game/images/big-monster.png",
+		imageSrc: "/images/big-monster.png",
 	});
 
 	initSpecialTiles(); // Initialize special tiles detection
@@ -788,7 +788,7 @@ function animate(backgroundCanvas) {
 									y: oposum.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -820,7 +820,7 @@ function animate(backgroundCanvas) {
 									y: eagle.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -864,7 +864,7 @@ function animate(backgroundCanvas) {
 									y: oposum.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -890,7 +890,7 @@ function animate(backgroundCanvas) {
 									y: oposum.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -927,7 +927,7 @@ function animate(backgroundCanvas) {
 									y: eagle.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -951,7 +951,7 @@ function animate(backgroundCanvas) {
 									y: eagle.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -1035,7 +1035,7 @@ function animate(backgroundCanvas) {
 									y: enemy.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -1060,7 +1060,7 @@ function animate(backgroundCanvas) {
 									y: enemy.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -1091,7 +1091,7 @@ function animate(backgroundCanvas) {
 									y: enemy.y,
 									width: 32,
 									height: 32,
-									imageSrc: "/src/components/game/images/enemy-death.png",
+									imageSrc: "/images/enemy-death.png",
 									spriteCropbox: {
 										x: 0,
 										y: 0,
@@ -1132,7 +1132,7 @@ function animate(backgroundCanvas) {
 							y: gem.y - 8,
 							width: 32,
 							height: 32,
-							imageSrc: "/src/components/game/images/item-feedback.png",
+							imageSrc: "/images/item-feedback.png",
 							spriteCropbox: {
 								x: 0,
 								y: 0,
@@ -1187,7 +1187,7 @@ function animate(backgroundCanvas) {
 								y: bigMonster.y,
 								width: 32,
 								height: 32,
-								imageSrc: "/src/components/game/images/enemy-death.png",
+								imageSrc: "/images/enemy-death.png",
 								spriteCropbox: {
 									x: 0,
 									y: 0,

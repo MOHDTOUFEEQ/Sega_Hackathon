@@ -75,10 +75,10 @@ class Player {
 			this.images.fall.src = this.characterPath;
 		} else {
 			// Set image sources
-			this.images.idle.src = "/src/components/game/images/char-final.png";
-			this.images.run.src = "/src/components/game/images/char-final.png";
-			this.images.jump.src = "/src/components/game/images/char-jump.png";
-			this.images.fall.src = "/src/components/game/images/char-jump.png";
+			this.images.idle.src = "/images/char-final.png";
+			this.images.run.src = "/images/char-final.png";
+			this.images.jump.src = "/images/char-jump.png";
+			this.images.fall.src = "/images/char-jump.png";
 		}
 
 		this.elapsedTime = 0;
@@ -87,13 +87,12 @@ class Player {
 		this.jumpStrength = -JUMP_POWER;
 		this.groundLevel = 400;
 
-		
-			this.sprites = {
-				idle: {
-					x: 0,
-					y: 0,
-					width: 1024,
-					height: 1024,
+		this.sprites = {
+			idle: {
+				x: 0,
+				y: 0,
+				width: 1024,
+				height: 1024,
 				frames: 1,
 			},
 			run: {
@@ -118,7 +117,6 @@ class Player {
 				frames: 1,
 			},
 		};
-		
 
 		this.currentSprite = this.sprites.idle;
 		this.facing = "right";
@@ -410,10 +408,10 @@ class Player {
 			this.images.jump.src = this.characterPath;
 			this.images.fall.src = this.characterPath;
 		} else {
-			this.images.idle.src = "/src/components/game/images/char-final.png";
-			this.images.run.src = "/src/components/game/images/char-final.png";
-			this.images.jump.src = "/src/components/game/images/char-jump.png";
-			this.images.fall.src = "/src/components/game/images/char-jump.png";
+			this.images.idle.src = "/images/char-final.png";
+			this.images.run.src = "/images/char-final.png";
+			this.images.jump.src = "/images/char-jump.png";
+			this.images.fall.src = "/images/char-jump.png";
 		}
 	}
 }

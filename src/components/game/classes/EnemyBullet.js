@@ -13,7 +13,7 @@ export default class EnemyBullet {
 		this.trailLength = 5; // Number of trail segments
 		this.trail = []; // Store previous positions for trail effect
 		this.explosionImage = new Image();
-		this.explosionImage.src = "/src/components/game/images/explosion.png";
+		this.explosionImage.src = "/images/explosion.png";
 	}
 
 	update() {
