@@ -10,6 +10,7 @@ import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Layout from './Layout.jsx'
 import TournamentStats from './components/TournamentStats.jsx'
 import Character from './components/Character.jsx'
+import { Analytics } from "@vercel/analytics/react"
 
 const router = createBrowserRouter([
   {
@@ -46,5 +47,6 @@ createRoot(document.getElementById('root')).render(
     <Provider store={store}>
       <RouterProvider router={router}></RouterProvider>
     </Provider>
+    <Analytics />
   </StrictMode>,
 )
